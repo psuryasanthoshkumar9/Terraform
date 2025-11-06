@@ -8,4 +8,8 @@
 # Terraform lock file
 .terraform.lock.hcl
 # documents
-*.doc
+*.doc.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+crash.log
