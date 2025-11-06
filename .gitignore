@@ -1,22 +1,12 @@
-# Local .terraform directories
-**/.terraform/*
-
-# Terraform state files
+# Terraform
+.terraform/
 *.tfstate
 *.tfstate.*
-
-# Terraform lock file
-.terraform.lock.hcl
-# documents
-*.doc.terraform/
-*.tfstate
-*.tfstate.backup
-.terraform.lock.hcl
 crash.log
-
-echo ".terraform/" >> .gitignore
-echo "*.tfstate" >> .gitignore
-echo "*.tfstate.backup" >> .gitignore
-echo ".terraform.lock.hcl" >> .gitignore
-echo "crash.log" >> .gitignore
-
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+terraform.tfvars
+*.tfvars.json
+.terraform.lock.hcl
