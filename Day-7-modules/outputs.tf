@@ -1,19 +1,23 @@
-output "public_subnet_ids" {
-  value = module.networking.public_subnet_ids
+output "vpc_id" {
+  value = module.networking.vpc_id
 }
 
-output "private_subnet_ids" {
-  value = module.networking.private_subnet_ids
+output "public_subnet_id" {
+  value = module.networking.public_subnet_id
 }
 
 output "ec2_instance_id" {
   value = module.ec2.instance_id
 }
 
-output "lambda_arn" {
-  value = module.lambda.lambda_arn
+output "rds_endpoint" {
+  value = module.rds.db_endpoint
 }
 
-output "rds_endpoint" {
-  value = module.rds.rds_endpoint
+output "lambda_name" {
+  value = module.lambda.lambda_name
+}
+
+output "lambda_role_arn" {
+  value = module.iam.role_arn
 }

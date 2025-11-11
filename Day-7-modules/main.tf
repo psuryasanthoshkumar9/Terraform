@@ -1,32 +1,40 @@
+terraform {
+  required_version = ">= 1.5"
+}
+
 provider "aws" {
-  region = var.aws_region
+  region = "us-east-1"
 }
 
+# Networking module
 module "networking" {
-  source   = "./modules/networking"
-  vpc_cidr = var.vpc_cidr
+  source = "./modules/networking"
 }
 
-module "ec2" {
-  source     = "./modules/ec2"
-  subnet_ids = module.networking.public_subnet_ids
-  key_name   = var.key_name
-}
-
-module "rds" {
-  source     = "./modules/rds"
-  vpc_id     = module.networking.vpc_id
-  subnet_ids = module.networking.private_subnet_ids
-}
-
-module "lambda" {
-  source         = "./modules/lambda"
-  s3_bucket      = var.lambda_s3_bucket
-  function_name  = var.lambda_function_name
-  handler        = var.lambda_handler
-  runtime        = var.lambda_runtime
-}
-
+# IAM module
 module "iam" {
   source = "./modules/iam"
+}
+
+# EC2 module
+module "ec2" {
+  source      = "./modules/ec2"
+  subnet_id   = module.networking.public_subnet_id
+  security_grp = module.networking.web_sg_id
+}
+
+# RDS module
+module "rds" {
+  source        = "./modules/rds"
+  subnet_ids    = module.networking.private_subnet_ids
+  security_grp  = module.networking.web_sg_id
+}
+
+# Lambda module
+module "lambda" {
+  source               = "./modules/lambda"
+  lambda_function_name = "my-lambda"
+  lambda_handler       = "lambda_function.lambda_handler"
+  lambda_runtime       = "python3.9"
+  role_arn             = module.iam.role_arn
 }
