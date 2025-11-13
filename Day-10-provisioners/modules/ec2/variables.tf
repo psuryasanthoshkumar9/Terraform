@@ -1,4 +1,15 @@
-variable "subnet_id" {}
-variable "security_grp" {}
-variable "key_name" {}
-variable "private_key_path" {}
+########################
+# modules/ec2/variables.tf
+########################
+
+variable "subnet_id" {
+  type = string
+}
+
+variable "security_grp_id" {
+  type = string
+}
+
+variable "key_name" {
+  type = string
+}
