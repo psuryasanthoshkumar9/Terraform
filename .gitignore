@@ -1,0 +1,6 @@
+.terraform/
+*.tfstate*
+*.tfvars
+*.log
+.terraform/
+Day-10-provisioners/
