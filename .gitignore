@@ -3,4 +3,3 @@
 *.tfvars
 *.log
 .terraform/
-Day-10-provisioners/
