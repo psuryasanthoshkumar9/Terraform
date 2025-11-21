@@ -1,9 +1,0 @@
-# Terraform
-.terraform/
-terraform.tfstate
-terraform.tfstate.*
-*.backup
-
-# Build artifacts
-build/
-*.zip

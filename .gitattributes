@@ -1,4 +1,0 @@
-*.tf text eol=lf
-*.hcl text eol=lf
-*.sh text eol=lf
-*.json text eol=lf
