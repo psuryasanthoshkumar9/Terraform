@@ -1,0 +1,18 @@
+# -----------------------
+# Outputs
+# -----------------------
+output "s3_bucket" {
+  value = aws_s3_bucket.artifact.bucket
+}
+
+output "dynamodb_table" {
+  value = aws_dynamodb_table.kv.name
+}
+
+output "lambda_name" {
+  value = aws_lambda_function.handler.function_name
+}
+
+output "api_endpoint" {
+  value = aws_apigatewayv2_api.http_api.api_endpoint
+}
