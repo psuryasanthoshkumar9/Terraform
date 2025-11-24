@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +21,9 @@ jobs:
         java-version: '17'
 
     - name: Build with Maven
+      working-directory: github-actions-java-demo   # <- IMPORTANT
       run: mvn clean install
 
     - name: Run Tests
+      working-directory: github-actions-java-demo   # <- IMPORTANT
       run: mvn test
