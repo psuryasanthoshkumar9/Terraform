@@ -1,0 +1,6 @@
+cat > .gitignore <<'EOF'
+target/
+*.log
+.idea/
+*.iml
+EOF
