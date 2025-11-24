@@ -22,6 +22,8 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B package --file pom.xml
+        working-directory: github-actions-java-demo
 
       - name: Run Tests
         run: mvn test
+        working-directory: github-actions-java-demo
