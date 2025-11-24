@@ -11,19 +11,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout code
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # Step 2: Set up Java
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
+      # Step 3: Build with Maven in the subfolder
       - name: Build with Maven
         run: mvn -B package --file pom.xml
         working-directory: github-actions-java-demo
 
+      # Step 4: Run Tests in the subfolder
       - name: Run Tests
         run: mvn test
         working-directory: github-actions-java-demo
