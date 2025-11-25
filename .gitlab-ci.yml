@@ -7,7 +7,7 @@ stages:
   - apply
 
 variables:
-  TF_IN_AUTOMATION: "true"   # Terraform automation mode
+  TF_IN_AUTOMATION: "true"
 
 terraform_fmt:
   stage: fmt
