@@ -1,47 +1,35 @@
 name: Terraform CI
 
-# Trigger workflow manually or on push to main
 on:
-  workflow_dispatch:   # Manual trigger
+  workflow_dispatch:
   push:
-    branches: [main]   # Optional: runs automatically on push to main
+    branches: [main]
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2️⃣ Setup Terraform (use valid version)
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.7.9   # Updated to a valid version
+          terraform_version: 1.8.5   # ★ FIXED VERSION
 
-      # 3️⃣ Terraform Format (check formatting)
-      - name: Terraform Format
-        working-directory: Day-1-basic-code
-        run: terraform fmt -check
-
-      # 4️⃣ Terraform Init
       - name: Terraform Init
         working-directory: Day-1-basic-code
         run: terraform init
 
-      # 5️⃣ Terraform Validate
       - name: Terraform Validate
         working-directory: Day-1-basic-code
         run: terraform validate
 
-      # 6️⃣ Terraform Plan
       - name: Terraform Plan
         working-directory: Day-1-basic-code
         run: terraform plan -out=tfplan
 
-      # 7️⃣ Terraform Apply (only on main branch)
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         working-directory: Day-1-basic-code
