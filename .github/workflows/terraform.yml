@@ -1,0 +1,32 @@
+name: Terraform CI
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # manual trigger
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.7
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./Day-1-basic-code
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+        working-directory: ./Day-1-basic-code
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve tfplan
+        working-directory: ./Day-1-basic-code
