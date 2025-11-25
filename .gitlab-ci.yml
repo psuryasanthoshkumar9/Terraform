@@ -1,4 +1,4 @@
-image: hashicorp/terraform:1.5.7  # Use stable Terraform image
+image: hashicorp/terraform:1.5.7
 
 stages:
   - fmt
@@ -9,18 +9,12 @@ stages:
 variables:
   TF_IN_AUTOMATION: "true"
 
-# -----------------------
-# Terraform format check
-# -----------------------
 terraform_fmt:
   stage: fmt
   script:
     - cd Day-1-basic-code
     - terraform fmt -check
 
-# -----------------------
-# Terraform validation
-# -----------------------
 terraform_validate:
   stage: validate
   script:
@@ -28,9 +22,6 @@ terraform_validate:
     - terraform init -input=false
     - terraform validate
 
-# -----------------------
-# Terraform plan
-# -----------------------
 terraform_plan:
   stage: plan
   script:
@@ -41,9 +32,6 @@ terraform_plan:
     paths:
       - Day-1-basic-code/tfplan
 
-# -----------------------
-# Terraform apply
-# -----------------------
 terraform_apply:
   stage: apply
   when: manual
