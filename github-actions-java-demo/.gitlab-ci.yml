@@ -20,5 +20,7 @@ test:
     - mvn test
   artifacts:
     when: always
+    paths:
+      - github-actions-java-demo/target/
     reports:
       junit: github-actions-java-demo/target/surefire-reports/*.xml
