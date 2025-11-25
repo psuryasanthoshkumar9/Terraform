@@ -15,11 +15,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2️⃣ Setup Terraform
+      # 2️⃣ Setup Terraform (use valid version)
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.6.7
+          terraform_version: 1.7.9   # Updated to a valid version
 
       # 3️⃣ Terraform Format (check formatting)
       - name: Terraform Format
