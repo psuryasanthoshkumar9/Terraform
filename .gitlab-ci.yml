@@ -6,6 +6,9 @@ stages:
   - plan
   - apply
 
+variables:
+  TF_IN_AUTOMATION: "true"   # Terraform automation mode
+
 terraform_fmt:
   stage: fmt
   script:
