@@ -1,9 +1,9 @@
 name: Terraform CI
 
 on:
+  workflow_dispatch:   # manual trigger
   push:
-    branches: [ main ]
-  workflow_dispatch:  # manual trigger
+    branches: [main]
 
 jobs:
   terraform:
@@ -19,14 +19,14 @@ jobs:
           terraform_version: 1.6.7
 
       - name: Terraform Init
+        working-directory: Day-1-basic-code
         run: terraform init
-        working-directory: ./Day-1-basic-code
 
       - name: Terraform Plan
+        working-directory: Day-1-basic-code
         run: terraform plan -out=tfplan
-        working-directory: ./Day-1-basic-code
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
+        working-directory: Day-1-basic-code
         run: terraform apply -auto-approve tfplan
-        working-directory: ./Day-1-basic-code
