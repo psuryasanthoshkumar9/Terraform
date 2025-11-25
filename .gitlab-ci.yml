@@ -1,74 +1,52 @@
+image: hashicorp/terraform:1.5.7  # Use stable Terraform image
+
 stages:
   - fmt
   - validate
   - plan
   - apply
-  - build
-  - test
 
 variables:
   TF_IN_AUTOMATION: "true"
 
-# ========================
-# Terraform Jobs
-# ========================
-
+# -----------------------
+# Terraform format check
+# -----------------------
 terraform_fmt:
   stage: fmt
-  image: hashicorp/terraform:latest
   script:
     - cd Day-1-basic-code
     - terraform fmt -check
 
+# -----------------------
+# Terraform validation
+# -----------------------
 terraform_validate:
   stage: validate
-  image: hashicorp/terraform:latest
   script:
     - cd Day-1-basic-code
-    - terraform init
+    - terraform init -input=false
     - terraform validate
 
+# -----------------------
+# Terraform plan
+# -----------------------
 terraform_plan:
   stage: plan
-  image: hashicorp/terraform:latest
   script:
     - cd Day-1-basic-code
-    - terraform init
+    - terraform init -input=false
     - terraform plan -out=tfplan
   artifacts:
     paths:
       - Day-1-basic-code/tfplan
 
+# -----------------------
+# Terraform apply
+# -----------------------
 terraform_apply:
   stage: apply
-  image: hashicorp/terraform:latest
   when: manual
   script:
     - cd Day-1-basic-code
     - terraform apply -auto-approve tfplan
-
-# ========================
-# Java Maven Jobs
-# ========================
-
-java_build:
-  stage: build
-  image: maven:3.9.2-eclipse-temurin-17
-  script:
-    - mvn -f github-actions-java-demo/pom.xml clean install
-  artifacts:
-    paths:
-      - github-actions-java-demo/target/
-
-java_test:
-  stage: test
-  image: maven:3.9.2-eclipse-temurin-17
-  script:
-    - mvn -f github-actions-java-demo/pom.xml test
-  artifacts:
-    when: always
-    paths:
-      - github-actions-java-demo/target/
-    reports:
-      junit:
-        - github-actions-java-demo/target/surefire-reports/*.xml
