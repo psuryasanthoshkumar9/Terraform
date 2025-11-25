@@ -2,8 +2,16 @@ name: Terraform CI
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
+    inputs:
+      action:
+        type: choice
+        description: "Choose Terraform Action"
+        required: true
+        default: "plan"
+        options:
+          - plan
+          - apply
+          - destroy
 
 jobs:
   terraform:
@@ -14,30 +22,34 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.8.5
+          terraform_version: 1.5.7
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1  # Change if needed
+          aws-region: ap-south-1
 
       - name: Terraform Init
         working-directory: Day-1-basic-code
         run: terraform init
 
-      - name: Terraform Validate
+      - name: Terraform Plan / Apply / Destroy
         working-directory: Day-1-basic-code
-        run: terraform validate
+        run: |
+          echo "Selected Action: ${{ github.event.inputs.action }}"
 
-      - name: Terraform Plan
-        working-directory: Day-1-basic-code
-        run: terraform plan -out=tfplan
+          if [ "${{ github.event.inputs.action }}" == "plan" ]; then
+            terraform plan
+          fi
 
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        working-directory: Day-1-basic-code
-        run: terraform apply -auto-approve tfplan
+          if [ "${{ github.event.inputs.action }}" == "apply" ]; then
+            terraform apply -auto-approve
+          fi
+
+          if [ "${{ github.event.inputs.action }}" == "destroy" ]; then
+            terraform destroy -auto-approve
+          fi
