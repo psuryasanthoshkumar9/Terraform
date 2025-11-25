@@ -1,0 +1,80 @@
+stages:
+  - fmt
+  - init
+  - validate
+  - plan
+  - apply
+  - destroy
+
+# -------- GLOBAL VARIABLES --------
+variables:
+  TF_ROOT: "Day-1-basic-code"     # <<< CHANGE YOUR FOLDER NAME HERE
+  TF_IN_AUTOMATION: "true"
+  TF_WARN_OUTPUT_ERRORS: "1"
+
+# -------- FORMAT CHECK --------
+terraform_fmt:
+  stage: fmt
+  image: hashicorp/terraform:latest
+  script:
+    - cd $TF_ROOT
+    - terraform fmt -check
+  only:
+    - main
+
+# -------- INIT --------
+terraform_init:
+  stage: init
+  image: hashicorp/terraform:latest
+  script:
+    - cd $TF_ROOT
+    - terraform init -input=false
+  only:
+    - main
+
+# -------- VALIDATE --------
+terraform_validate:
+  stage: validate
+  image: hashicorp/terraform:latest
+  script:
+    - cd $TF_ROOT
+    - terraform validate
+  only:
+    - main
+
+# -------- PLAN --------
+terraform_plan:
+  stage: plan
+  image: hashicorp/terraform:latest
+  script:
+    - cd $TF_ROOT
+    - terraform plan -out=tfplan
+  artifacts:
+    paths:
+      - $TF_ROOT/tfplan
+  only:
+    - main
+
+# -------- APPLY (MANUAL) --------
+terraform_apply:
+  stage: apply
+  image: hashicorp/terraform:latest
+  script:
+    - cd $TF_ROOT
+    - terraform apply -auto-approve tfplan
+  dependencies:
+    - terraform_plan
+  when: manual               # <<< manual approval
+  only:
+    - main
+
+# -------- DESTROY (MANUAL) --------
+terraform_destroy:
+  stage: destroy
+  image: hashicorp/terraform:latest
+  script:
+    - cd $TF_ROOT
+    - terraform destroy -auto-approve
+  when: manual               # <<< manual button in GitLab UI
+  only:
+    - main
