@@ -9,7 +9,7 @@ stages:
   image: alpine:latest
   before_script:
     - apk update
-    - apk add --no-cache curl unzip bash
+    - apk add --no-cache curl unzip bash git
     - curl -LO https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
     - unzip terraform_1.6.0_linux_amd64.zip
     - mv terraform /usr/local/bin/
@@ -24,6 +24,18 @@ terraform_fmt:
   <<: *setup
   script:
     - terraform fmt -recursive
+    - echo "Formatting done, committing root-level YAML only..."
+    # Git config
+    - git config --global user.email "ci-bot@example.com"
+    - git config --global user.name "CI Bot"
+    # Go back to repo root
+    - cd ..
+    # Only add root-level YAML files
+    - git add *.yml
+    # Commit if there are changes
+    - git diff --cached --quiet || git commit -m "Auto-format root-level YAML files"
+    # Push changes
+    - git push origin HEAD:main || echo "No changes to push"
   artifacts:
     paths:
       - Day-1-basic-code/
