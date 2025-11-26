@@ -63,16 +63,15 @@ terraform_plan:
 # -----------------------------
 terraform_action:
   stage: action
-  script:
-    - echo "Executing Terraform action: $ACTION"
-    - |
-      if [ "$ACTION" = "apply" ]; then
-        terraform apply -auto-approve tfplan
-      elif [ "$ACTION" = "destroy" ]; then
-        terraform destroy -auto-approve
-      else
-        echo "Invalid ACTION! Exiting..."
-        exit 1
-      fi
   dependencies:
     - terraform_plan
+  script:
+    - echo "Executing Terraform action: $ACTION"
+    - >
+      if [ "$ACTION" = "apply" ]; then
+        terraform apply -auto-approve tfplan;
+      elif [ "$ACTION" = "destroy" ]; then
+        terraform destroy -auto-approve;
+      else
+        echo "Invalid ACTION! Exiting..."; exit 1;
+      fi
