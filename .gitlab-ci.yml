@@ -1,4 +1,3 @@
-# Use official Terraform image
 image: hashicorp/terraform:1.6.0
 
 stages:
@@ -8,7 +7,7 @@ stages:
   - deploy
 
 variables:
-  TF_ROOT: "./"        # Path to your Terraform code
+  TF_ROOT: "./"
   TF_IN_AUTOMATION: "true"
 
 before_script:
@@ -40,12 +39,13 @@ plan:
       - $TF_ROOT/tfplan
   allow_failure: false
 
-# Stage 4: Apply or Destroy (manual choice using variable)
+# Stage 4: Apply or Destroy using bash -c
 deploy:
   stage: deploy
   script:
-    - cd $TF_ROOT
     - |
+      bash -c '
+      cd $TF_ROOT
       if [ "$TF_ACTION" = "APPLY" ]; then
         echo "Applying Terraform plan..."
         terraform apply -auto-approve tfplan
@@ -56,6 +56,7 @@ deploy:
         echo "No valid action selected. Set TF_ACTION=APPLY or DESTROY."
         exit 1
       fi
+      '
   when: manual
   allow_failure: false
   only:
