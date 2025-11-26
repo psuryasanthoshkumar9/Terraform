@@ -1,29 +1,27 @@
+# Use official Terraform image
+image: hashicorp/terraform:1.6.0
+
 stages:
   - fmt
   - init
   - plan
-  - apply
+  - deploy
 
 variables:
-  TF_ROOT: "./"        # Terraform code location
-  TF_VAR_environment: "dev"
+  TF_ROOT: "./"        # Path to your Terraform code
   TF_IN_AUTOMATION: "true"
 
 before_script:
-  - apk add --no-cache bash curl git unzip # Install dependencies (for Alpine runners)
-  - curl -LO https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
-  - unzip terraform_1.6.0_linux_amd64.zip
-  - mv terraform /usr/local/bin/
   - terraform --version
 
-# Stage 1: Format Terraform code
+# Stage 1: Format check
 fmt:
   stage: fmt
   script:
     - terraform fmt -check
   allow_failure: false
 
-# Stage 2: Initialize Terraform
+# Stage 2: Terraform init
 init:
   stage: init
   script:
@@ -41,25 +39,23 @@ plan:
     paths:
       - $TF_ROOT/tfplan
   allow_failure: false
-  when: on_success
 
-# Stage 4a: Terraform apply (manual)
-apply:
-  stage: apply
+# Stage 4: Apply or Destroy (manual choice using variable)
+deploy:
+  stage: deploy
   script:
     - cd $TF_ROOT
-    - terraform apply -auto-approve tfplan
-  when: manual
-  allow_failure: false
-  only:
-    - main
-
-# Stage 4b: Terraform destroy (manual)
-destroy:
-  stage: apply
-  script:
-    - cd $TF_ROOT
-    - terraform destroy -auto-approve
+    - |
+      if [ "$TF_ACTION" = "APPLY" ]; then
+        echo "Applying Terraform plan..."
+        terraform apply -auto-approve tfplan
+      elif [ "$TF_ACTION" = "DESTROY" ]; then
+        echo "Destroying Terraform resources..."
+        terraform destroy -auto-approve
+      else
+        echo "No valid action selected. Set TF_ACTION=APPLY or DESTROY."
+        exit 1
+      fi
   when: manual
   allow_failure: false
   only:
