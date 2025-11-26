@@ -15,6 +15,8 @@ stages:
     - unzip terraform_1.6.0_linux_amd64.zip
     - mv terraform /usr/local/bin/
     - terraform version
+    - cd Day-1-basic-code        # <<==== IMPORTANT FIX
+    - export TF_WORK_DIR=$(pwd)  # store path for next stages
 
 # ---------------------------- #
 #     1. Terraform FMT          #
@@ -23,12 +25,13 @@ terraform_fmt:
   stage: fmt
   <<: *setup
   script:
+    - cd "$TF_WORK_DIR"
     - echo "Running auto-format..."
     - terraform fmt -recursive
     - echo "Terraform code formatted successfully!"
   artifacts:
     paths:
-      - .
+      - Day-1-basic-code/
     expire_in: 1 hour
 
 # ---------------------------- #
@@ -38,13 +41,14 @@ terraform_init:
   stage: init
   <<: *setup
   script:
+    - cd "$TF_WORK_DIR"
     - terraform init
   dependencies:
     - terraform_fmt
   artifacts:
     paths:
-      - .terraform/
-      - .terraform.lock.hcl
+      - Day-1-basic-code/.terraform/
+      - Day-1-basic-code/.terraform.lock.hcl
     expire_in: 1 hour
 
 # ---------------------------- #
@@ -54,12 +58,13 @@ terraform_plan:
   stage: plan
   <<: *setup
   script:
+    - cd "$TF_WORK_DIR"
     - terraform plan -out=tfplan
   dependencies:
     - terraform_init
   artifacts:
     paths:
-      - tfplan
+      - Day-1-basic-code/tfplan
     expire_in: 1 hour
 
 # ---------------------------- #
@@ -69,6 +74,7 @@ terraform_apply:
   stage: apply
   <<: *setup
   script:
+    - cd "$TF_WORK_DIR"
     - terraform apply -auto-approve tfplan
   when: manual
   allow_failure: false
@@ -82,6 +88,7 @@ terraform_destroy:
   stage: destroy
   <<: *setup
   script:
+    - cd "$TF_WORK_DIR"
     - terraform destroy -auto-approve
   when: manual
   allow_failure: false
