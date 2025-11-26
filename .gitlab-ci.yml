@@ -12,31 +12,33 @@ stages:
 variables:
   TF_ROOT: "Day-1-basic-code"
 
-before_script:
-  - cd $TF_ROOT
-  - terraform --version
-
-# Terraform format check
+# -------------------------------
+# Format Terraform files
+# -------------------------------
 terraform_fmt:
   stage: fmt
   script:
-    - terraform fmt -check
-  allow_failure: true
-  artifacts:
-    paths:
-      - $TF_ROOT
+    - cd $TF_ROOT
+    - terraform fmt -recursive
+  allow_failure: false
 
-# Terraform validate
+# -------------------------------
+# Validate Terraform configuration
+# -------------------------------
 terraform_validate:
   stage: validate
   script:
+    - cd $TF_ROOT
     - terraform init -input=false
     - terraform validate
 
+# -------------------------------
 # Terraform plan
+# -------------------------------
 terraform_plan:
   stage: plan
   script:
+    - cd $TF_ROOT
     - terraform init -input=false
     - terraform plan -out=tfplan
   dependencies:
@@ -45,16 +47,23 @@ terraform_plan:
     paths:
       - $TF_ROOT/tfplan
 
+# -------------------------------
 # Terraform apply (manual)
+# -------------------------------
 terraform_apply:
   stage: apply
   when: manual
   script:
+    - cd $TF_ROOT
     - terraform apply -auto-approve tfplan
 
+# -------------------------------
 # Terraform destroy (manual)
+# -------------------------------
 terraform_destroy:
   stage: destroy
   when: manual
   script:
+    - cd $TF_ROOT
+    - terraform init -input=false
     - terraform destroy -auto-approve
