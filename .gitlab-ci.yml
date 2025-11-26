@@ -1,62 +1,85 @@
-image: hashicorp/terraform:1.6.0
-
 stages:
   - fmt
   - init
   - plan
-  - deploy
+  - apply
+  - destroy
 
-variables:
-  TF_ROOT: "./"        # Path to Terraform code
-  TF_IN_AUTOMATION: "true"
+# ------------------------------------------
+# COMMON BEFORE_SCRIPT – installs Terraform
+# ------------------------------------------
+.default_template: &tf_setup
+  before_script:
+    - apk update
+    - apk add --no-cache curl unzip bash
+    - curl -LO https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
+    - unzip terraform_1.6.0_linux_amd64.zip
+    - mv terraform /usr/local/bin/
+    - terraform --version
 
-before_script:
-  - terraform --version
-
-# Stage 1: Terraform fmt
-fmt:
+# -----------------------------
+# 1) TERRAFORM FMT
+# -----------------------------
+terraform_fmt:
   stage: fmt
+  image: alpine:latest
+  <<: *tf_setup
   script:
-    - terraform fmt -check
+    - terraform fmt -check -recursive
   allow_failure: false
 
-# Stage 2: Terraform init
-init:
+# -----------------------------
+# 2) TERRAFORM INIT
+# -----------------------------
+terraform_init:
   stage: init
+  image: alpine:latest
+  <<: *tf_setup
   script:
-    - cd $TF_ROOT
-    - terraform init -input=false
-  allow_failure: false
+    - terraform init
+  artifacts:
+    paths:
+      - .terraform/
+      - .terraform.lock.hcl
 
-# Stage 3: Terraform plan
-plan:
+# -----------------------------
+# 3) TERRAFORM PLAN
+# -----------------------------
+terraform_plan:
   stage: plan
+  image: alpine:latest
+  <<: *tf_setup
   script:
-    - cd $TF_ROOT
     - terraform plan -out=tfplan
   artifacts:
     paths:
-      - $TF_ROOT/tfplan
-  allow_failure: false
+      - tfplan
+      - plan_output.txt
+  dependencies:
+    - terraform_init
 
-# Stage 4a: Apply (manual)
-apply:
-  stage: deploy
+# -----------------------------
+# 4) MANUAL APPLY (APPROVE)
+# -----------------------------
+terraform_apply:
+  stage: apply
+  image: alpine:latest
+  <<: *tf_setup
   script:
-    - cd $TF_ROOT
     - terraform apply -auto-approve tfplan
   when: manual
   allow_failure: false
-  only:
-    - main
+  dependencies:
+    - terraform_plan
 
-# Stage 4b: Destroy (manual)
-destroy:
-  stage: deploy
+# -----------------------------
+# 5) MANUAL DESTROY OPTION
+# -----------------------------
+terraform_destroy:
+  stage: destroy
+  image: alpine:latest
+  <<: *tf_setup
   script:
-    - cd $TF_ROOT
     - terraform destroy -auto-approve
   when: manual
   allow_failure: false
-  only:
-    - main
