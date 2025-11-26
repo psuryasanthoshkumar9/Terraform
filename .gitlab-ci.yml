@@ -10,7 +10,7 @@ stages:
 
 variables:
   TF_ROOT: "Day-1-basic-code"
-  ACTION: "apply"  # Change to "destroy" to automatically destroy
+  ACTION: "apply"   # Change this to "destroy" to automatically destroy
 
 before_script:
   - cd $TF_ROOT
@@ -25,7 +25,7 @@ before_script:
 terraform_fmt:
   stage: fmt
   script:
-    # Automatically format Terraform files, fixing issues
+    - echo "Automatically formatting Terraform code..."
     - terraform fmt -recursive
 
 # -----------------------------
@@ -34,6 +34,7 @@ terraform_fmt:
 terraform_init:
   stage: init
   script:
+    - echo "Initializing Terraform..."
     - terraform init -input=false
 
 # -----------------------------
@@ -42,6 +43,7 @@ terraform_init:
 terraform_validate:
   stage: validate
   script:
+    - echo "Validating Terraform configuration..."
     - terraform validate
 
 # -----------------------------
@@ -50,17 +52,19 @@ terraform_validate:
 terraform_plan:
   stage: plan
   script:
+    - echo "Creating Terraform plan..."
     - terraform plan -out=tfplan
   artifacts:
     paths:
       - $TF_ROOT/tfplan
 
 # -----------------------------
-# ACTION: APPLY or DESTROY
+# ACTION (APPLY or DESTROY)
 # -----------------------------
 terraform_action:
   stage: action
   script:
+    - echo "Executing Terraform action: $ACTION"
     - |
       if [ "$ACTION" = "apply" ]; then
         terraform apply -auto-approve tfplan
