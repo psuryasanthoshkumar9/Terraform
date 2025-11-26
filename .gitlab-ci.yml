@@ -10,7 +10,6 @@ stages:
 
 variables:
   TF_ROOT: "Day-1-basic-code"
-  TF_ACTION: ""  # User must select 'apply' or 'destroy' when running pipeline
 
 # -------------------------------
 # Format Terraform files
@@ -48,22 +47,23 @@ terraform_plan:
       - $TF_ROOT/tfplan
 
 # -------------------------------
-# Terraform apply/destroy (manual choice)
+# Terraform apply (manual)
 # -------------------------------
-terraform_deploy:
+terraform_apply:
   stage: deploy
   when: manual
   script:
     - cd $TF_ROOT
     - terraform init -input=false
-    - |
-      if [ "$TF_ACTION" == "apply" ]; then
-        echo "Applying Terraform plan..."
-        terraform apply -auto-approve tfplan
-      elif [ "$TF_ACTION" == "destroy" ]; then
-        echo "Destroying all Terraform resources..."
-        terraform destroy -auto-approve
-      else
-        echo "Error: Set TF_ACTION variable to 'apply' or 'destroy'"
-        exit 1
-      fi
+    - terraform apply -auto-approve tfplan
+
+# -------------------------------
+# Terraform destroy (manual)
+# -------------------------------
+terraform_destroy:
+  stage: deploy
+  when: manual
+  script:
+    - cd $TF_ROOT
+    - terraform init -input=false
+    - terraform destroy -auto-approve
