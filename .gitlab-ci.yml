@@ -1,4 +1,3 @@
-# .gitlab-ci.yml
 stages:
   - fmt
   - init
@@ -8,14 +7,11 @@ stages:
 
 variables:
   TF_ROOT: "Day-1-basic-code"
-  ACTION: "apply"  # Change to "destroy" to automatically destroy
+  ACTION: "apply"   # change to "destroy" for auto destroy
 
 before_script:
-  - cd $TF_ROOT
+  - cd "$TF_ROOT"
   - terraform --version
-  - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-  - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-  - export AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
 
 # -----------------------------
 # FORMAT
@@ -23,7 +19,7 @@ before_script:
 terraform_fmt:
   stage: fmt
   script:
-    - echo "Automatically formatting Terraform code..."
+    - echo "Formatting Terraform files..."
     - terraform fmt -recursive
 
 # -----------------------------
@@ -41,7 +37,7 @@ terraform_init:
 terraform_validate:
   stage: validate
   script:
-    - echo "Validating Terraform configuration..."
+    - echo "Validating Terraform..."
     - terraform validate
 
 # -----------------------------
@@ -50,11 +46,11 @@ terraform_validate:
 terraform_plan:
   stage: plan
   script:
-    - echo "Creating Terraform plan..."
+    - echo "Running Terraform plan..."
     - terraform plan -out=tfplan
   artifacts:
     paths:
-      - $TF_ROOT/tfplan
+      - "$TF_ROOT/tfplan"
 
 # -----------------------------
 # APPLY or DESTROY
@@ -62,15 +58,8 @@ terraform_plan:
 terraform_action:
   stage: action
   script:
-    - echo "Executing Terraform action: $ACTION"
-    - |
-      if [ "$ACTION" = "apply" ]; then
-        terraform apply -auto-approve tfplan
-      elif [ "$ACTION" = "destroy" ]; then
-        terraform destroy -auto-approve
-      else
-        echo "Invalid ACTION! Exiting..."
-        exit 1
-      fi
+    - echo "Executing ACTION = $ACTION"
+    - if [ "$ACTION" = "apply" ]; then terraform apply -auto-approve tfplan; fi
+    - if [ "$ACTION" = "destroy" ]; then terraform destroy -auto-approve; fi
   dependencies:
     - terraform_plan
