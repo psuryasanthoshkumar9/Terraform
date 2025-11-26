@@ -1,75 +1,59 @@
 image:
   name: hashicorp/terraform:1.5.7
-  entrypoint: [""]
 
 stages:
   - fmt
-  - init_validate
+  - init
+  - validate
   - plan
   - action
 
 variables:
   TF_ROOT: "Day-1-basic-code"
-  AWS_DEFAULT_REGION: "us-east-1"
+  ACTION: "apply"  # <-- change to "destroy" to destroy automatically
 
-# -----------------------------
-# FORMAT
-# -----------------------------
+before_script:
+  - cd $TF_ROOT
+  - terraform --version
+  - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+  - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+  - export AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
+
 terraform_fmt:
   stage: fmt
   script:
-    - cd $TF_ROOT
     - terraform fmt -recursive
   allow_failure: true
 
-# -----------------------------
-# INIT + VALIDATE
-# -----------------------------
-terraform_init_validate:
-  stage: init_validate
+terraform_init:
+  stage: init
   script:
-    - cd $TF_ROOT
     - terraform init -input=false
-    - terraform validate
-  artifacts:
-    paths:
-      - $TF_ROOT/.terraform
-      - $TF_ROOT/.terraform.lock.hcl
-    expire_in: 1 hour
 
-# -----------------------------
-# PLAN
-# -----------------------------
+terraform_validate:
+  stage: validate
+  script:
+    - terraform validate
+
 terraform_plan:
   stage: plan
-  dependencies:
-    - terraform_init_validate
   script:
-    - cd $TF_ROOT
     - terraform plan -out=tfplan
   artifacts:
     paths:
       - $TF_ROOT/tfplan
-    expire_in: 1 hour
 
-# -----------------------------
-# ACTION (Apply or Destroy)
-# -----------------------------
 terraform_action:
   stage: action
-  dependencies:
-    - terraform_plan
-  when: manual
   script:
-    - cd $TF_ROOT
     - |
       if [ "$ACTION" = "apply" ]; then
-        echo "Running terraform apply..."
         terraform apply -auto-approve tfplan
       elif [ "$ACTION" = "destroy" ]; then
-        echo "Running terraform destroy..."
         terraform destroy -auto-approve
       else
-        echo "No valid ACTION provided. Exiting..."
+        echo "Invalid ACTION! Exiting..."
         exit 1
       fi
+  dependencies:
+    - terraform_plan
