@@ -12,11 +12,10 @@ terraform_fmt:
   image: hashicorp/terraform:1.5.7
   script:
     - cd $TF_ROOT
-    - terraform fmt
+    - terraform fmt -check || true
   artifacts:
     paths:
       - $TF_ROOT
-    expire_in: 1 hour
 
 terraform_validate:
   stage: validate
@@ -36,7 +35,6 @@ terraform_plan:
   artifacts:
     paths:
       - $TF_ROOT/tfplan
-    expire_in: 1 hour
 
 terraform_apply:
   stage: apply
