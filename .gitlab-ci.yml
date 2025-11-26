@@ -1,6 +1,4 @@
-image:
-  name: hashicorp/terraform:1.5.7
-
+# .gitlab-ci.yml
 stages:
   - fmt
   - init
@@ -10,7 +8,7 @@ stages:
 
 variables:
   TF_ROOT: "Day-1-basic-code"
-  ACTION: "apply"   # Change to "destroy" to automatically destroy
+  ACTION: "apply"  # Change to "destroy" to automatically destroy
 
 before_script:
   - cd $TF_ROOT
@@ -59,20 +57,20 @@ terraform_plan:
       - $TF_ROOT/tfplan
 
 # -----------------------------
-# ACTION (APPLY or DESTROY)
+# APPLY or DESTROY
 # -----------------------------
 terraform_action:
   stage: action
+  script:
+    - echo "Executing Terraform action: $ACTION"
+    - |
+      if [ "$ACTION" = "apply" ]; then
+        terraform apply -auto-approve tfplan
+      elif [ "$ACTION" = "destroy" ]; then
+        terraform destroy -auto-approve
+      else
+        echo "Invalid ACTION! Exiting..."
+        exit 1
+      fi
   dependencies:
     - terraform_plan
-  script:
-    - >
-      echo "Executing Terraform action: $ACTION";
-      if [ "$ACTION" = "apply" ]; then
-        terraform apply -auto-approve tfplan;
-      elif [ "$ACTION" = "destroy" ]; then
-        terraform destroy -auto-approve;
-      else
-        echo "Invalid ACTION! Exiting...";
-        exit 1;
-      fi
