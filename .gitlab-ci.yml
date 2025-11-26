@@ -65,4 +65,11 @@ terraform_action:
   script:
     - cd $TF_ROOT
     - echo "Executing Terraform action: $ACTION"
-    - 'if [ "$ACTION" = "apply" ]; then terraform apply -auto-approve tfplan; elif [ "$ACTION" = "destroy" ]; then terraform destroy -auto-approve; else echo "No valid ACTION provided. Exiting..."; exit 1; fi'
+    - if [ "$ACTION" = "apply" ]; then
+        terraform apply -auto-approve tfplan;
+      elif [ "$ACTION" = "destroy" ]; then
+        terraform destroy -auto-approve;
+      else
+        echo "No valid ACTION provided. Exiting...";
+        exit 1;
+      fi
