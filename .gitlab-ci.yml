@@ -8,7 +8,6 @@ stages:
   - apply
 
 before_script:
-  # Move into your Terraform folder
   - cd Day-1-basic-code
   - terraform --version
 
@@ -34,7 +33,7 @@ plan:
 
 apply:
   stage: apply
-  when: manual   # optional, remove if auto apply needed
+  when: manual        # remove this line if you want auto apply
   script:
     - terraform init
     - terraform apply -auto-approve
