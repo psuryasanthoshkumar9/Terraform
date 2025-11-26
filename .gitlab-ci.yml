@@ -5,7 +5,6 @@ stages:
   - apply
   - destroy
 
-# Install Terraform in Alpine
 .default_template: &setup
   image: alpine:latest
   before_script:
