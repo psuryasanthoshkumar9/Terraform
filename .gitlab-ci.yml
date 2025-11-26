@@ -7,7 +7,7 @@ stages:
 
 variables:
   TF_ROOT: "Day-1-basic-code"
-  ACTION: "apply"   # Change to "destroy" to automatically destroy
+  ACTION: "apply"  # Change to "destroy" if you want to destroy automatically
 
 # -----------------------------
 # 1. Terraform Format
@@ -65,11 +65,12 @@ terraform_action:
   script:
     - cd $TF_ROOT
     - echo "Executing Terraform action: $ACTION"
-    - if [ "$ACTION" = "apply" ]; then
-        terraform apply -auto-approve tfplan;
+    - |
+      if [ "$ACTION" = "apply" ]; then
+        terraform apply -auto-approve tfplan
       elif [ "$ACTION" = "destroy" ]; then
-        terraform destroy -auto-approve;
+        terraform destroy -auto-approve
       else
-        echo "No valid ACTION provided. Exiting...";
-        exit 1;
+        echo "No valid ACTION provided. Exiting..."
+        exit 1
       fi
