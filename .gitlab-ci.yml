@@ -5,36 +5,26 @@ stages:
   - apply
   - destroy
 
-# ------------------------------------------
-# COMMON BEFORE_SCRIPT – installs Terraform
-# ------------------------------------------
-.default_template: &tf_setup
+# Install Terraform in Alpine
+.default_template: &setup
+  image: alpine:latest
   before_script:
     - apk update
     - apk add --no-cache curl unzip bash
     - curl -LO https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
     - unzip terraform_1.6.0_linux_amd64.zip
     - mv terraform /usr/local/bin/
-    - terraform --version
+    - terraform version
 
-# -----------------------------
-# 1) TERRAFORM FMT
-# -----------------------------
 terraform_fmt:
   stage: fmt
-  image: alpine:latest
-  <<: *tf_setup
+  <<: *setup
   script:
     - terraform fmt -check -recursive
-  allow_failure: false
 
-# -----------------------------
-# 2) TERRAFORM INIT
-# -----------------------------
 terraform_init:
   stage: init
-  image: alpine:latest
-  <<: *tf_setup
+  <<: *setup
   script:
     - terraform init
   artifacts:
@@ -42,44 +32,29 @@ terraform_init:
       - .terraform/
       - .terraform.lock.hcl
 
-# -----------------------------
-# 3) TERRAFORM PLAN
-# -----------------------------
 terraform_plan:
   stage: plan
-  image: alpine:latest
-  <<: *tf_setup
+  <<: *setup
   script:
     - terraform plan -out=tfplan
   artifacts:
     paths:
       - tfplan
-      - plan_output.txt
   dependencies:
     - terraform_init
 
-# -----------------------------
-# 4) MANUAL APPLY (APPROVE)
-# -----------------------------
 terraform_apply:
   stage: apply
-  image: alpine:latest
-  <<: *tf_setup
+  <<: *setup
   script:
     - terraform apply -auto-approve tfplan
   when: manual
-  allow_failure: false
   dependencies:
     - terraform_plan
 
-# -----------------------------
-# 5) MANUAL DESTROY OPTION
-# -----------------------------
 terraform_destroy:
   stage: destroy
-  image: alpine:latest
-  <<: *tf_setup
+  <<: *setup
   script:
     - terraform destroy -auto-approve
   when: manual
-  allow_failure: false
