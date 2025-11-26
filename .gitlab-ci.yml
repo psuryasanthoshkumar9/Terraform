@@ -4,7 +4,6 @@ image:
 
 stages:
   - fmt
-  - init
   - validate
   - plan
   - action
@@ -12,66 +11,50 @@ stages:
 variables:
   TF_ROOT: "Day-1-basic-code"
 
-# -----------------------------
-# FMT
-# -----------------------------
+before_script:
+  - cd $TF_ROOT
+  - terraform --version
+  - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+  - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+  - export AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
+
 terraform_fmt:
   stage: fmt
   script:
-    - cd $TF_ROOT
     - terraform fmt -check
   allow_failure: true
 
-# -----------------------------
-# INIT
-# -----------------------------
-terraform_init:
-  stage: init
-  script:
-    - cd $TF_ROOT
-    - terraform init -input=false
-
-# -----------------------------
-# VALIDATE
-# -----------------------------
 terraform_validate:
   stage: validate
   script:
-    - cd $TF_ROOT
+    - terraform init -input=false
     - terraform validate
 
-# -----------------------------
-# PLAN
-# -----------------------------
 terraform_plan:
   stage: plan
   script:
-    - cd $TF_ROOT
+    - terraform init -input=false
     - terraform plan -out=tfplan
+  dependencies:
+    - terraform_validate
   artifacts:
     paths:
       - $TF_ROOT/tfplan
 
-# -----------------------------
-# APPLY (user selects ACTION = apply)
-# -----------------------------
-terraform_apply:
+terraform_action:
   stage: action
-  when: manual
-  rules:
-    - if: '$ACTION == "apply"'
   script:
-    - cd $TF_ROOT
-    - terraform apply -auto-approve tfplan
-
-# -----------------------------
-# DESTROY (user selects ACTION = destroy)
-# -----------------------------
-terraform_destroy:
-  stage: action
+    - echo "Choose action: apply or destroy"
+    - read ACTION
+    - |
+      if [ "$ACTION" = "apply" ]; then
+        terraform apply -auto-approve tfplan
+      elif [ "$ACTION" = "destroy" ]; then
+        terraform destroy -auto-approve
+      else
+        echo "Invalid action! Exiting..."
+        exit 1
+      fi
   when: manual
-  rules:
-    - if: '$ACTION == "destroy"'
-  script:
-    - cd $TF_ROOT
-    - terraform destroy -auto-approve
+  dependencies:
+    - terraform_plan
