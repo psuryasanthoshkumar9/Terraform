@@ -4,16 +4,15 @@ image:
 
 stages:
   - fmt
-  - init
-  - validate
+  - init_validate
   - plan
   - action
 
 variables:
-  TF_ROOT: "Day-1-basic-code"   # <-- change to your Terraform folder
+  TF_ROOT: "Day-1-basic-code"
   AWS_ACCESS_KEY_ID: "<your_aws_access_key_id>"
   AWS_SECRET_ACCESS_KEY: "<your_aws_secret_access_key>"
-  AWS_DEFAULT_REGION: "us-east-1"  # <-- change if needed
+  AWS_DEFAULT_REGION: "us-east-1"  # change as needed
 
 # -----------------------------
 # FORMAT
@@ -22,25 +21,18 @@ terraform_fmt:
   stage: fmt
   script:
     - cd $TF_ROOT
-    - terraform fmt -recursive   # automatically formats all Terraform files
+    - terraform fmt -recursive   # auto-format all Terraform files
+  allow_failure: true
 
 # -----------------------------
-# INIT
+# INIT + VALIDATE (combined)
 # -----------------------------
-terraform_init:
-  stage: init
+terraform_init_validate:
+  stage: init_validate
   script:
     - cd $TF_ROOT
-    - terraform init -input=false
-
-# -----------------------------
-# VALIDATE
-# -----------------------------
-terraform_validate:
-  stage: validate
-  script:
-    - cd $TF_ROOT
-    - terraform validate
+    - terraform init -input=false  # download providers
+    - terraform validate           # now validate will succeed
 
 # -----------------------------
 # PLAN
@@ -50,12 +42,14 @@ terraform_plan:
   script:
     - cd $TF_ROOT
     - terraform plan -out=tfplan
+  dependencies:
+    - terraform_init_validate
   artifacts:
     paths:
       - $TF_ROOT/tfplan
 
 # -----------------------------
-# ACTION (Apply or Destroy)
+# ACTION: Apply or Destroy
 # -----------------------------
 terraform_action:
   stage: action
@@ -70,6 +64,6 @@ terraform_action:
         echo "Running terraform destroy..."
         terraform destroy -auto-approve
       else
-        echo "No valid action selected. Exiting..."
+        echo "No valid ACTION provided. Exiting..."
         exit 1
       fi
