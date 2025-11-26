@@ -10,18 +10,19 @@ stages:
   - action
 
 variables:
-  TF_ROOT: "Day-1-basic-code"  # Change to your Terraform folder
-  AWS_REGION: "us-east-1"      # Default AWS region
+  TF_ROOT: "Day-1-basic-code"   # <-- change to your Terraform folder
+  AWS_ACCESS_KEY_ID: "<your_aws_access_key_id>"
+  AWS_SECRET_ACCESS_KEY: "<your_aws_secret_access_key>"
+  AWS_DEFAULT_REGION: "us-east-1"  # <-- change if needed
 
 # -----------------------------
-# FORMAT CHECK
+# FORMAT
 # -----------------------------
 terraform_fmt:
   stage: fmt
   script:
     - cd $TF_ROOT
-    - terraform fmt -check
-  allow_failure: true
+    - terraform fmt -recursive   # automatically formats all Terraform files
 
 # -----------------------------
 # INIT
@@ -39,7 +40,6 @@ terraform_validate:
   stage: validate
   script:
     - cd $TF_ROOT
-    - terraform init -input=false
     - terraform validate
 
 # -----------------------------
@@ -49,34 +49,27 @@ terraform_plan:
   stage: plan
   script:
     - cd $TF_ROOT
-    - terraform init -input=false
     - terraform plan -out=tfplan
-  dependencies:
-    - terraform_validate
   artifacts:
     paths:
       - $TF_ROOT/tfplan
 
 # -----------------------------
-# APPLY OR DESTROY
+# ACTION (Apply or Destroy)
 # -----------------------------
 terraform_action:
   stage: action
-  when: manual        # User triggers manually in GitLab UI
-  variables:
-    ACTION: "apply"   # Default value, can override when triggering
-  dependencies:
-    - terraform_plan
+  when: manual
   script:
     - cd $TF_ROOT
     - |
       if [ "$ACTION" = "apply" ]; then
-        echo "Running Terraform APPLY..."
+        echo "Running terraform apply..."
         terraform apply -auto-approve tfplan
       elif [ "$ACTION" = "destroy" ]; then
-        echo "Running Terraform DESTROY..."
+        echo "Running terraform destroy..."
         terraform destroy -auto-approve
       else
-        echo "Invalid ACTION variable! Set ACTION=apply or ACTION=destroy."
+        echo "No valid action selected. Exiting..."
         exit 1
       fi
