@@ -10,18 +10,8 @@ stages:
   - action
 
 variables:
-  TF_ROOT: "Day-1-basic-code"
-  ACTION: ""  # Will choose manually in GitLab UI ("apply" or "destroy")
-
-# -----------------------------
-# BEFORE SCRIPT
-# -----------------------------
-before_script:
-  - cd $TF_ROOT
-  - terraform --version
-  - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-  - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-  - export AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
+  TF_ROOT: "Day-1-basic-code"  # Change to your Terraform folder
+  AWS_REGION: "us-east-1"      # Default AWS region
 
 # -----------------------------
 # FORMAT CHECK
@@ -29,6 +19,7 @@ before_script:
 terraform_fmt:
   stage: fmt
   script:
+    - cd $TF_ROOT
     - terraform fmt -check
   allow_failure: true
 
@@ -38,6 +29,7 @@ terraform_fmt:
 terraform_init:
   stage: init
   script:
+    - cd $TF_ROOT
     - terraform init -input=false
 
 # -----------------------------
@@ -46,6 +38,7 @@ terraform_init:
 terraform_validate:
   stage: validate
   script:
+    - cd $TF_ROOT
     - terraform init -input=false
     - terraform validate
 
@@ -55,37 +48,35 @@ terraform_validate:
 terraform_plan:
   stage: plan
   script:
+    - cd $TF_ROOT
     - terraform init -input=false
     - terraform plan -out=tfplan
+  dependencies:
+    - terraform_validate
   artifacts:
     paths:
       - $TF_ROOT/tfplan
-    expire_in: 1h
-  dependencies:
-    - terraform_validate
 
 # -----------------------------
-# APPLY OR DESTROY (manual)
+# APPLY OR DESTROY
 # -----------------------------
 terraform_action:
   stage: action
-  when: manual
+  when: manual        # User triggers manually in GitLab UI
   variables:
-    ACTION:
-      value: "apply"     # default
-      options:
-        - apply
-        - destroy
+    ACTION: "apply"   # Default value, can override when triggering
   dependencies:
     - terraform_plan
   script:
     - cd $TF_ROOT
     - |
       if [ "$ACTION" = "apply" ]; then
+        echo "Running Terraform APPLY..."
         terraform apply -auto-approve tfplan
       elif [ "$ACTION" = "destroy" ]; then
+        echo "Running Terraform DESTROY..."
         terraform destroy -auto-approve
       else
-        echo "Invalid action! Exiting..."
+        echo "Invalid ACTION variable! Set ACTION=apply or ACTION=destroy."
         exit 1
       fi
