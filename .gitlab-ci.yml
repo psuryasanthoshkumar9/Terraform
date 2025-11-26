@@ -11,6 +11,7 @@ stages:
 
 variables:
   TF_ROOT: "Day-1-basic-code"
+  ACTION: ""   # Set "apply" or "destroy" in GitLab CI/CD variables before running
 
 # -----------------------------
 # BEFORE SCRIPT
@@ -64,22 +65,25 @@ terraform_plan:
     - terraform_validate
 
 # -----------------------------
-# APPLY OR DESTROY (User chooses)
+# APPLY OR DESTROY
 # -----------------------------
 terraform_action:
   stage: action
   when: manual
   dependencies:
     - terraform_plan
+  rules:
+    - if: '$ACTION == "apply" || $ACTION == "destroy"'
   script:
-    - echo "Choose action: apply or destroy"
-    - read ACTION
+    - cd $TF_ROOT
     - |
       if [ "$ACTION" = "apply" ]; then
+        echo "Running terraform apply..."
         terraform apply -auto-approve tfplan
       elif [ "$ACTION" = "destroy" ]; then
+        echo "Running terraform destroy..."
         terraform destroy -auto-approve
       else
-        echo "Invalid action! Exiting..."
+        echo "No valid action specified! Exiting..."
         exit 1
       fi
