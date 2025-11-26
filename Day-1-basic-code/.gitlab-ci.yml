@@ -1,65 +1,69 @@
+image:
+  name: hashicorp/terraform:1.5.7
+  entrypoint: [""]
+
 stages:
   - fmt
   - validate
   - plan
-  - apply
-  - destroy
+  - deploy
 
 variables:
   TF_ROOT: "Day-1-basic-code"
 
-# Format check
+# -------------------------------
+# Format Terraform files
+# -------------------------------
 terraform_fmt:
   stage: fmt
-  image: hashicorp/terraform:1.5.7
-  entrypoint: [""]
   script:
     - cd $TF_ROOT
-    - terraform fmt -check
-  allow_failure: true
-  artifacts:
-    paths:
-      - $TF_ROOT
+    - terraform fmt -recursive
+  allow_failure: false
 
+# -------------------------------
 # Validate Terraform configuration
+# -------------------------------
 terraform_validate:
   stage: validate
-  image: hashicorp/terraform:1.5.7
-  entrypoint: [""]
   script:
     - cd $TF_ROOT
     - terraform init -input=false
     - terraform validate
 
+# -------------------------------
 # Terraform plan
+# -------------------------------
 terraform_plan:
   stage: plan
-  image: hashicorp/terraform:1.5.7
-  entrypoint: [""]
   script:
     - cd $TF_ROOT
     - terraform init -input=false
     - terraform plan -out=tfplan
+  dependencies:
+    - terraform_validate
   artifacts:
     paths:
       - $TF_ROOT/tfplan
 
-# Terraform apply (manual trigger)
+# -------------------------------
+# Terraform apply (manual)
+# -------------------------------
 terraform_apply:
-  stage: apply
-  image: hashicorp/terraform:1.5.7
-  entrypoint: [""]
+  stage: deploy
   when: manual
   script:
     - cd $TF_ROOT
+    - terraform init -input=false
     - terraform apply -auto-approve tfplan
 
-# Terraform destroy (manual trigger)
+# -------------------------------
+# Terraform destroy (manual)
+# -------------------------------
 terraform_destroy:
-  stage: destroy
-  image: hashicorp/terraform:1.5.7
-  entrypoint: [""]
+  stage: deploy
   when: manual
   script:
     - cd $TF_ROOT
+    - terraform init -input=false
     - terraform destroy -auto-approve
