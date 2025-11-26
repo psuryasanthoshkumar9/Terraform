@@ -10,7 +10,7 @@ stages:
 
 variables:
   TF_ROOT: "Day-1-basic-code"
-  ACTION: "apply"   # Change this to "destroy" to automatically destroy
+  ACTION: "apply"   # Change to "destroy" to automatically destroy
 
 before_script:
   - cd $TF_ROOT
