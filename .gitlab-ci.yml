@@ -1,76 +1,66 @@
 stages:
   - fmt
   - init
-  - validate
   - plan
-  - apply_destroy
+  - apply
 
 variables:
-  TF_ROOT: "Day-1-basic-code"
-  ACTION: "apply"  # Change to "destroy" if you want to destroy automatically
+  TF_ROOT: "./"        # Terraform code location
+  TF_VAR_environment: "dev"
+  TF_IN_AUTOMATION: "true"
 
-# -----------------------------
-# 1. Terraform Format
-# -----------------------------
-terraform_fmt:
+before_script:
+  - apk add --no-cache bash curl git unzip # Install dependencies (for Alpine runners)
+  - curl -LO https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
+  - unzip terraform_1.6.0_linux_amd64.zip
+  - mv terraform /usr/local/bin/
+  - terraform --version
+
+# Stage 1: Format Terraform code
+fmt:
   stage: fmt
-  image: hashicorp/terraform:1.5.7
   script:
-    - cd $TF_ROOT
-    - echo "Automatically formatting Terraform code..."
-    - terraform fmt -recursive
+    - terraform fmt -check
+  allow_failure: false
 
-# -----------------------------
-# 2. Terraform Init
-# -----------------------------
-terraform_init:
+# Stage 2: Initialize Terraform
+init:
   stage: init
-  image: hashicorp/terraform:1.5.7
   script:
     - cd $TF_ROOT
-    - echo "Initializing Terraform..."
     - terraform init -input=false
+  allow_failure: false
 
-# -----------------------------
-# 3. Terraform Validate
-# -----------------------------
-terraform_validate:
-  stage: validate
-  image: hashicorp/terraform:1.5.7
-  script:
-    - cd $TF_ROOT
-    - echo "Validating Terraform configuration..."
-    - terraform validate
-
-# -----------------------------
-# 4. Terraform Plan
-# -----------------------------
-terraform_plan:
+# Stage 3: Terraform plan
+plan:
   stage: plan
-  image: hashicorp/terraform:1.5.7
   script:
     - cd $TF_ROOT
-    - echo "Creating Terraform plan..."
     - terraform plan -out=tfplan
   artifacts:
     paths:
       - $TF_ROOT/tfplan
+  allow_failure: false
+  when: on_success
 
-# -----------------------------
-# 5. Terraform Apply / Destroy
-# -----------------------------
-terraform_action:
-  stage: apply_destroy
-  image: hashicorp/terraform:1.5.7
+# Stage 4a: Terraform apply (manual)
+apply:
+  stage: apply
   script:
     - cd $TF_ROOT
-    - echo "Executing Terraform action: $ACTION"
-    - |
-      if [ "$ACTION" = "apply" ]; then
-        terraform apply -auto-approve tfplan
-      elif [ "$ACTION" = "destroy" ]; then
-        terraform destroy -auto-approve
-      else
-        echo "No valid ACTION provided. Exiting..."
-        exit 1
-      fi
+    - terraform apply -auto-approve tfplan
+  when: manual
+  allow_failure: false
+  only:
+    - main
+
+# Stage 4b: Terraform destroy (manual)
+destroy:
+  stage: apply
+  script:
+    - cd $TF_ROOT
+    - terraform destroy -auto-approve
+  when: manual
+  allow_failure: false
+  only:
+    - main
