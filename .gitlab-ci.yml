@@ -1,46 +1,40 @@
+image:
+  name: hashicorp/terraform:1.5.7
+  entrypoint: [""]
+
 stages:
-  - fmt
   - validate
   - plan
   - apply
 
-variables:
-  TF_ROOT: "Day-1-basic-code"
+before_script:
+  # Move into your Terraform folder
+  - cd Day-1-basic-code
+  - terraform --version
 
-terraform_fmt:
-  stage: fmt
-  image: hashicorp/terraform:1.5.7
-  entrypoint: [""]
-  script:
-    - cd $TF_ROOT
-    - terraform fmt -check || true
-
-terraform_validate:
+validate:
   stage: validate
-  image: hashicorp/terraform:1.5.7
-  entrypoint: [""]
   script:
-    - cd $TF_ROOT
-    - terraform init -input=false
+    - terraform init
     - terraform validate
-
-terraform_plan:
-  stage: plan
-  image: hashicorp/terraform:1.5.7
-  entrypoint: [""]
-  script:
-    - cd $TF_ROOT
-    - terraform init -input=false
-    - terraform plan -out=tfplan
   artifacts:
     paths:
-      - $TF_ROOT/tfplan
+      - Day-1-basic-code/
 
-terraform_apply:
-  stage: apply
-  image: hashicorp/terraform:1.5.7
-  entrypoint: [""]
-  when: manual
+plan:
+  stage: plan
   script:
-    - cd $TF_ROOT
-    - terraform apply -auto-approve tfplan
+    - terraform init
+    - terraform plan -out=tfplan
+  dependencies:
+    - validate
+  artifacts:
+    paths:
+      - Day-1-basic-code/tfplan
+
+apply:
+  stage: apply
+  when: manual   # optional, remove if auto apply needed
+  script:
+    - terraform init
+    - terraform apply -auto-approve
