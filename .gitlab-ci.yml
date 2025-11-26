@@ -10,9 +10,7 @@ stages:
 
 variables:
   TF_ROOT: "Day-1-basic-code"
-  AWS_ACCESS_KEY_ID: "<your_aws_access_key_id>"
-  AWS_SECRET_ACCESS_KEY: "<your_aws_secret_access_key>"
-  AWS_DEFAULT_REGION: "us-east-1"  # change as needed
+  AWS_DEFAULT_REGION: "us-east-1"
 
 # -----------------------------
 # FORMAT
@@ -21,38 +19,46 @@ terraform_fmt:
   stage: fmt
   script:
     - cd $TF_ROOT
-    - terraform fmt -recursive   # auto-format all Terraform files
+    - terraform fmt -recursive
   allow_failure: true
 
 # -----------------------------
-# INIT + VALIDATE (combined)
+# INIT + VALIDATE
 # -----------------------------
 terraform_init_validate:
   stage: init_validate
   script:
     - cd $TF_ROOT
-    - terraform init -input=false  # download providers
-    - terraform validate           # now validate will succeed
+    - terraform init -input=false
+    - terraform validate
+  artifacts:
+    paths:
+      - $TF_ROOT/.terraform
+      - $TF_ROOT/.terraform.lock.hcl
+    expire_in: 1 hour
 
 # -----------------------------
 # PLAN
 # -----------------------------
 terraform_plan:
   stage: plan
+  dependencies:
+    - terraform_init_validate
   script:
     - cd $TF_ROOT
     - terraform plan -out=tfplan
-  dependencies:
-    - terraform_init_validate
   artifacts:
     paths:
       - $TF_ROOT/tfplan
+    expire_in: 1 hour
 
 # -----------------------------
-# ACTION: Apply or Destroy
+# ACTION (Apply or Destroy)
 # -----------------------------
 terraform_action:
   stage: action
+  dependencies:
+    - terraform_plan
   when: manual
   script:
     - cd $TF_ROOT
