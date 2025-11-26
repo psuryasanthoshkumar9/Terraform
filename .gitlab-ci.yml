@@ -1,3 +1,5 @@
+image: hashicorp/terraform:1.5.7
+
 stages:
   - fmt
   - init
@@ -7,7 +9,7 @@ stages:
 
 variables:
   TF_ROOT: "Day-1-basic-code"
-  ACTION: "apply"   # change to "destroy" for auto destroy
+  ACTION: "apply"   # change to "destroy" to auto destroy
 
 before_script:
   - cd "$TF_ROOT"
@@ -19,7 +21,7 @@ before_script:
 terraform_fmt:
   stage: fmt
   script:
-    - echo "Formatting Terraform files..."
+    - echo "Automatically formatting Terraform files..."
     - terraform fmt -recursive
 
 # -----------------------------
@@ -37,7 +39,7 @@ terraform_init:
 terraform_validate:
   stage: validate
   script:
-    - echo "Validating Terraform..."
+    - echo "Validating Terraform configuration..."
     - terraform validate
 
 # -----------------------------
@@ -46,7 +48,7 @@ terraform_validate:
 terraform_plan:
   stage: plan
   script:
-    - echo "Running Terraform plan..."
+    - echo "Creating Terraform plan..."
     - terraform plan -out=tfplan
   artifacts:
     paths:
@@ -58,7 +60,7 @@ terraform_plan:
 terraform_action:
   stage: action
   script:
-    - echo "Executing ACTION = $ACTION"
+    - echo "Executing Terraform ACTION = $ACTION"
     - if [ "$ACTION" = "apply" ]; then terraform apply -auto-approve tfplan; fi
     - if [ "$ACTION" = "destroy" ]; then terraform destroy -auto-approve; fi
   dependencies:
