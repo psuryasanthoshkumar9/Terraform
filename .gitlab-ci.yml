@@ -70,20 +70,22 @@ terraform_plan:
 terraform_action:
   stage: action
   when: manual
+  variables:
+    ACTION:
+      value: "apply"     # default
+      options:
+        - apply
+        - destroy
   dependencies:
     - terraform_plan
-  rules:
-    - if: '$ACTION == "apply" || $ACTION == "destroy"'
   script:
     - cd $TF_ROOT
     - |
       if [ "$ACTION" = "apply" ]; then
-        echo "Applying Terraform plan..."
         terraform apply -auto-approve tfplan
       elif [ "$ACTION" = "destroy" ]; then
-        echo "Destroying Terraform resources..."
         terraform destroy -auto-approve
       else
-        echo "No valid action selected! Exiting..."
+        echo "Invalid action! Exiting..."
         exit 1
       fi
