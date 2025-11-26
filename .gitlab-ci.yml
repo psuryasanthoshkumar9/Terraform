@@ -15,7 +15,6 @@ stages:
     - mv terraform /usr/local/bin/
     - terraform version
     - cd Day-1-basic-code
-    - export TF_WORK_DIR=$(pwd)
 
 # ---------------------------- #
 #     FMT
@@ -58,6 +57,8 @@ terraform_plan:
     - terraform_init
   artifacts:
     paths:
+      - Day-1-basic-code/.terraform/
+      - Day-1-basic-code/.terraform.lock.hcl
       - Day-1-basic-code/tfplan
     expire_in: 1 hour
 
@@ -82,3 +83,5 @@ terraform_destroy:
   script:
     - terraform destroy -auto-approve
   when: manual
+  dependencies:
+    - terraform_init
