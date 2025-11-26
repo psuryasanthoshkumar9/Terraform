@@ -1,12 +1,15 @@
-image: hashicorp/terraform:latest
-
-# THIS IS THE FIX 👇
-default:
-  entrypoint: [""]
+image:
+  name: hashicorp/terraform:1.5.7
+  entrypoint: [""]   # IMPORTANT → prevents Terraform image from overriding shell
 
 stages:
   - fmt
   - validate
+  - plan
+  - apply
+
+variables:
+  TF_IN_AUTOMATION: "true"
 
 terraform_fmt:
   stage: fmt
@@ -18,5 +21,22 @@ terraform_validate:
   stage: validate
   script:
     - cd Day-1-basic-code
-    - terraform init -input=false
+    - terraform init
     - terraform validate
+
+terraform_plan:
+  stage: plan
+  script:
+    - cd Day-1-basic-code
+    - terraform init
+    - terraform plan -out=tfplan
+  artifacts:
+    paths:
+      - Day-1-basic-code/tfplan
+
+terraform_apply:
+  stage: apply
+  when: manual
+  script:
+    - cd Day-1-basic-code
+    - terraform apply -auto-approve tfplan
