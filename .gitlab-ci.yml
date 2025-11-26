@@ -2,45 +2,70 @@ image:
   name: hashicorp/terraform:1.5.7
   entrypoint: [""]
 
+stages:
+  - fmt
+  - validate
+  - plan
+  - action
+
 variables:
   TF_ROOT: "Day-1-basic-code"
 
-stages:
-  - init
-  - action
-
-# ----------------------------------------------------
-# Terraform INIT
-# ----------------------------------------------------
-terraform_init:
-  stage: init
+# -----------------------------
+# Terraform Format Check
+# -----------------------------
+terraform_fmt:
+  stage: fmt
   script:
     - cd $TF_ROOT
-    - terraform init
-  rules:
-    - if: '$ACTION == "apply"'
-    - if: '$ACTION == "destroy"'
+    - terraform fmt -check
+  allow_failure: true
 
-# ----------------------------------------------------
-# Terraform APPLY
-# ----------------------------------------------------
+# -----------------------------
+# Terraform Validate
+# -----------------------------
+terraform_validate:
+  stage: validate
+  script:
+    - cd $TF_ROOT
+    - terraform init -input=false
+    - terraform validate
+
+# -----------------------------
+# Terraform Plan
+# -----------------------------
+terraform_plan:
+  stage: plan
+  script:
+    - cd $TF_ROOT
+    - terraform init -input=false
+    - terraform plan -out=tfplan
+  artifacts:
+    paths:
+      - $TF_ROOT/tfplan
+
+# -----------------------------
+# Terraform APPLY (manual)
+# User must set ACTION = "apply"
+# -----------------------------
 terraform_apply:
   stage: action
   script:
     - cd $TF_ROOT
-    - terraform plan
-    - terraform apply -auto-approve
+    - terraform apply -auto-approve tfplan
+  when: manual
   rules:
     - if: '$ACTION == "apply"'
 
-# ----------------------------------------------------
-# Terraform DESTROY
-# ----------------------------------------------------
+# -----------------------------
+# Terraform DESTROY (manual)
+# User must set ACTION = "destroy"
+# -----------------------------
 terraform_destroy:
   stage: action
   script:
     - cd $TF_ROOT
-    - terraform plan -destroy
     - terraform destroy -auto-approve
+  when: manual
   rules:
     - if: '$ACTION == "destroy"'
