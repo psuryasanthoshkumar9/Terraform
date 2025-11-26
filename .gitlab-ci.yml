@@ -1,53 +1,22 @@
-# Use official Terraform image
-image: hashicorp/terraform:1.5.7
+image: hashicorp/terraform:latest
 
-# Fixes Terraform 'sh' error
-entrypoint: [""]
+# THIS IS THE FIX 👇
+default:
+  entrypoint: [""]
 
-# Stages
 stages:
   - fmt
   - validate
-  - plan
-  - apply
 
-# CI/CD Variables
-variables:
-  TF_IN_AUTOMATION: "true"   # Ensures Terraform works in CI/CD automation
-
-# Stage 1: Terraform fmt
 terraform_fmt:
   stage: fmt
   script:
     - cd Day-1-basic-code
     - terraform fmt -check
-  allow_failure: false
 
-# Stage 2: Terraform validate
 terraform_validate:
   stage: validate
   script:
     - cd Day-1-basic-code
     - terraform init -input=false
     - terraform validate
-  allow_failure: false
-
-# Stage 3: Terraform plan
-terraform_plan:
-  stage: plan
-  script:
-    - cd Day-1-basic-code
-    - terraform init -input=false
-    - terraform plan -out=tfplan
-  artifacts:
-    paths:
-      - Day-1-basic-code/tfplan
-    expire_in: 1 hour
-
-# Stage 4: Terraform apply (manual trigger for safety)
-terraform_apply:
-  stage: apply
-  when: manual
-  script:
-    - cd Day-1-basic-code
-    - terraform apply -auto-approve tfplan
