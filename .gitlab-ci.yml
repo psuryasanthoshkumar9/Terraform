@@ -10,7 +10,7 @@ stages:
 
 variables:
   TF_ROOT: "Day-1-basic-code"
-  ACTION: "apply"  # <-- change to "destroy" to destroy automatically
+  ACTION: "apply"  # Change to "destroy" to automatically destroy
 
 before_script:
   - cd $TF_ROOT
@@ -19,22 +19,34 @@ before_script:
   - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
   - export AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
 
+# -----------------------------
+# FORMAT
+# -----------------------------
 terraform_fmt:
   stage: fmt
   script:
+    # Automatically format Terraform files, fixing issues
     - terraform fmt -recursive
-  allow_failure: true
 
+# -----------------------------
+# INIT
+# -----------------------------
 terraform_init:
   stage: init
   script:
     - terraform init -input=false
 
+# -----------------------------
+# VALIDATE
+# -----------------------------
 terraform_validate:
   stage: validate
   script:
     - terraform validate
 
+# -----------------------------
+# PLAN
+# -----------------------------
 terraform_plan:
   stage: plan
   script:
@@ -43,6 +55,9 @@ terraform_plan:
     paths:
       - $TF_ROOT/tfplan
 
+# -----------------------------
+# ACTION: APPLY or DESTROY
+# -----------------------------
 terraform_action:
   stage: action
   script:
