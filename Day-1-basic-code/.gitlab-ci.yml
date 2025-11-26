@@ -2,68 +2,61 @@ image:
   name: hashicorp/terraform:1.5.7
   entrypoint: [""]
 
-stages:
-  - fmt
-  - validate
-  - plan
-  - deploy
-
 variables:
   TF_ROOT: "Day-1-basic-code"
 
-# -------------------------------
-# Format Terraform files
-# -------------------------------
-terraform_fmt:
-  stage: fmt
+stages:
+  - choose
+  - init
+  - action
+
+# ----------------------------------------------------
+# 1️⃣ User chooses APPLY or DESTROY
+# ----------------------------------------------------
+choose_action:
+  stage: choose
   script:
-    - cd $TF_ROOT
-    - terraform fmt -recursive
+    - echo "❗ Please provide ACTION variable while running pipeline."
+    - echo "➡ ACTION=apply   (to create resources)"
+    - echo "➡ ACTION=destroy (to delete resources)"
+    - echo ""
+    - echo "Go to: CI/CD → Run Pipeline → Add variable ACTION"
+    - exit 1
+  when: manual
   allow_failure: false
 
-# -------------------------------
-# Validate Terraform configuration
-# -------------------------------
-terraform_validate:
-  stage: validate
+# ----------------------------------------------------
+# 2️⃣ Terraform INIT (runs for both apply/destroy)
+# ----------------------------------------------------
+terraform_init:
+  stage: init
   script:
     - cd $TF_ROOT
-    - terraform init -input=false
-    - terraform validate
+    - terraform init
+  rules:
+    - if: '$ACTION == "apply"'
+    - if: '$ACTION == "destroy"'
 
-# -------------------------------
-# Terraform plan
-# -------------------------------
-terraform_plan:
-  stage: plan
-  script:
-    - cd $TF_ROOT
-    - terraform init -input=false
-    - terraform plan -out=tfplan
-  dependencies:
-    - terraform_validate
-  artifacts:
-    paths:
-      - $TF_ROOT/tfplan
-
-# -------------------------------
-# Terraform apply (manual)
-# -------------------------------
+# ----------------------------------------------------
+# 3️⃣ Terraform APPLY
+# ----------------------------------------------------
 terraform_apply:
-  stage: deploy
-  when: manual
+  stage: action
   script:
     - cd $TF_ROOT
-    - terraform init -input=false
-    - terraform apply -auto-approve tfplan
+    - terraform plan
+    - terraform apply -auto-approve
+  rules:
+    - if: '$ACTION == "apply"'
 
-# -------------------------------
-# Terraform destroy (manual)
-# -------------------------------
+# ----------------------------------------------------
+# 4️⃣ Terraform DESTROY
+# ----------------------------------------------------
 terraform_destroy:
-  stage: deploy
-  when: manual
+  stage: action
   script:
     - cd $TF_ROOT
-    - terraform init -input=false
+    - terraform plan -destroy
     - terraform destroy -auto-approve
+  rules:
+    - if: '$ACTION == "destroy"'
