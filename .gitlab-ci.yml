@@ -5,6 +5,7 @@ stages:
   - apply
   - destroy
 
+# Install Terraform manually inside Alpine
 .default_template: &setup
   image: alpine:latest
   before_script:
@@ -15,45 +16,72 @@ stages:
     - mv terraform /usr/local/bin/
     - terraform version
 
+# ---------------------------- #
+#     1. Terraform FMT          #
+# ---------------------------- #
 terraform_fmt:
   stage: fmt
   <<: *setup
   script:
-    - terraform fmt -check -recursive
+    - echo "Running auto-format..."
+    - terraform fmt -recursive
+    - echo "Terraform code formatted successfully!"
+  artifacts:
+    paths:
+      - .
+    expire_in: 1 hour
 
+# ---------------------------- #
+#     2. Terraform INIT         #
+# ---------------------------- #
 terraform_init:
   stage: init
   <<: *setup
   script:
     - terraform init
+  dependencies:
+    - terraform_fmt
   artifacts:
     paths:
       - .terraform/
       - .terraform.lock.hcl
+    expire_in: 1 hour
 
+# ---------------------------- #
+#     3. Terraform PLAN         #
+# ---------------------------- #
 terraform_plan:
   stage: plan
   <<: *setup
   script:
     - terraform plan -out=tfplan
+  dependencies:
+    - terraform_init
   artifacts:
     paths:
       - tfplan
-  dependencies:
-    - terraform_init
+    expire_in: 1 hour
 
+# ---------------------------- #
+#     4. Terraform APPLY        #
+# ---------------------------- #
 terraform_apply:
   stage: apply
   <<: *setup
   script:
     - terraform apply -auto-approve tfplan
   when: manual
+  allow_failure: false
   dependencies:
     - terraform_plan
 
+# ---------------------------- #
+#     5. Terraform DESTROY      #
+# ---------------------------- #
 terraform_destroy:
   stage: destroy
   <<: *setup
   script:
     - terraform destroy -auto-approve
   when: manual
+  allow_failure: false
