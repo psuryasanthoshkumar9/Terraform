@@ -4,7 +4,10 @@ image:
 
 stages:
   - fmt
+<<<<<<< HEAD
   - init
+=======
+>>>>>>> d8f37e16288548ef71be42a28a473611b562d275
   - validate
   - plan
   - action
@@ -13,6 +16,7 @@ variables:
   TF_ROOT: "Day-1-basic-code"
 
 # -----------------------------
+<<<<<<< HEAD
 # FMT
 # -----------------------------
 terraform_fmt:
@@ -33,26 +37,52 @@ terraform_init:
 
 # -----------------------------
 # VALIDATE
+=======
+# Terraform Format Check
+# -----------------------------
+terraform_fmt:
+  stage: fmt
+  script:
+    - cd $TF_ROOT
+    - terraform fmt -check
+  allow_failure: true
+
+# -----------------------------
+# Terraform Validate
+>>>>>>> d8f37e16288548ef71be42a28a473611b562d275
 # -----------------------------
 terraform_validate:
   stage: validate
   script:
     - cd $TF_ROOT
+<<<<<<< HEAD
     - terraform validate
 
 # -----------------------------
 # PLAN
+=======
+    - terraform init -input=false
+    - terraform validate
+
+# -----------------------------
+# Terraform Plan
+>>>>>>> d8f37e16288548ef71be42a28a473611b562d275
 # -----------------------------
 terraform_plan:
   stage: plan
   script:
     - cd $TF_ROOT
+<<<<<<< HEAD
+=======
+    - terraform init -input=false
+>>>>>>> d8f37e16288548ef71be42a28a473611b562d275
     - terraform plan -out=tfplan
   artifacts:
     paths:
       - $TF_ROOT/tfplan
 
 # -----------------------------
+<<<<<<< HEAD
 # APPLY (user selects ACTION = apply)
 # -----------------------------
 terraform_apply:
@@ -69,6 +99,29 @@ terraform_apply:
 # -----------------------------
 terraform_destroy:
   stage: action
+=======
+# Terraform APPLY (manual)
+# User must set ACTION = "apply"
+# -----------------------------
+terraform_apply:
+  stage: action
+  script:
+    - cd $TF_ROOT
+    - terraform apply -auto-approve tfplan
+  when: manual
+  rules:
+    - if: '$ACTION == "apply"'
+
+# -----------------------------
+# Terraform DESTROY (manual)
+# User must set ACTION = "destroy"
+# -----------------------------
+terraform_destroy:
+  stage: action
+  script:
+    - cd $TF_ROOT
+    - terraform destroy -auto-approve
+>>>>>>> d8f37e16288548ef71be42a28a473611b562d275
   when: manual
   rules:
     - if: '$ACTION == "destroy"'
