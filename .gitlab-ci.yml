@@ -7,13 +7,13 @@ stages:
   - deploy
 
 variables:
-  TF_ROOT: "./"
+  TF_ROOT: "./"        # Path to Terraform code
   TF_IN_AUTOMATION: "true"
 
 before_script:
   - terraform --version
 
-# Stage 1: Format check
+# Stage 1: Terraform fmt
 fmt:
   stage: fmt
   script:
@@ -39,24 +39,23 @@ plan:
       - $TF_ROOT/tfplan
   allow_failure: false
 
-# Stage 4: Apply or Destroy using bash -c
-deploy:
+# Stage 4a: Apply (manual)
+apply:
   stage: deploy
   script:
-    - |
-      bash -c '
-      cd $TF_ROOT
-      if [ "$TF_ACTION" = "APPLY" ]; then
-        echo "Applying Terraform plan..."
-        terraform apply -auto-approve tfplan
-      elif [ "$TF_ACTION" = "DESTROY" ]; then
-        echo "Destroying Terraform resources..."
-        terraform destroy -auto-approve
-      else
-        echo "No valid action selected. Set TF_ACTION=APPLY or DESTROY."
-        exit 1
-      fi
-      '
+    - cd $TF_ROOT
+    - terraform apply -auto-approve tfplan
+  when: manual
+  allow_failure: false
+  only:
+    - main
+
+# Stage 4b: Destroy (manual)
+destroy:
+  stage: deploy
+  script:
+    - cd $TF_ROOT
+    - terraform destroy -auto-approve
   when: manual
   allow_failure: false
   only:
