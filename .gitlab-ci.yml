@@ -1,64 +1,66 @@
-image: hashicorp/terraform:1.5.7
-
 stages:
   - fmt
   - init
   - validate
   - plan
-  - action
+  - apply_destroy
 
 variables:
   TF_ROOT: "Day-1-basic-code"
   ACTION: "apply"   # Change to "destroy" to automatically destroy
 
 before_script:
-  - cd "$TF_ROOT"
-  - terraform --version
+  - cd $TF_ROOT
 
 # -----------------------------
-# FORMAT
+# 1. Terraform Format
 # -----------------------------
 terraform_fmt:
   stage: fmt
+  image: hashicorp/terraform:1.5.7
   script:
     - echo "Automatically formatting Terraform code..."
     - terraform fmt -recursive
 
 # -----------------------------
-# INIT
+# 2. Terraform Init
 # -----------------------------
 terraform_init:
   stage: init
+  image: hashicorp/terraform:1.5.7
   script:
     - echo "Initializing Terraform..."
     - terraform init -input=false
 
 # -----------------------------
-# VALIDATE
+# 3. Terraform Validate
 # -----------------------------
 terraform_validate:
   stage: validate
+  image: hashicorp/terraform:1.5.7
   script:
     - echo "Validating Terraform configuration..."
     - terraform validate
 
 # -----------------------------
-# PLAN
+# 4. Terraform Plan
 # -----------------------------
 terraform_plan:
   stage: plan
+  image: hashicorp/terraform:1.5.7
   script:
     - echo "Creating Terraform plan..."
     - terraform plan -out=tfplan
   artifacts:
     paths:
-      - "$TF_ROOT/tfplan"
+      - $TF_ROOT/tfplan
 
 # -----------------------------
-# APPLY or DESTROY
+# 5. Terraform Apply / Destroy
 # -----------------------------
 terraform_action:
-  stage: action
+  stage: apply_destroy
+  image: hashicorp/terraform:1.5.7
   script:
     - echo "Executing Terraform action: $ACTION"
     - |
@@ -67,8 +69,6 @@ terraform_action:
       elif [ "$ACTION" = "destroy" ]; then
         terraform destroy -auto-approve
       else
-        echo "Invalid ACTION: $ACTION"
+        echo "No valid ACTION provided. Exiting..."
         exit 1
       fi
-  dependencies:
-    - terraform_plan
