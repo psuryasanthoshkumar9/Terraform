@@ -6,27 +6,11 @@ variables:
   TF_ROOT: "Day-1-basic-code"
 
 stages:
-  - choose
   - init
   - action
 
 # ----------------------------------------------------
-# 1️⃣ User chooses APPLY or DESTROY
-# ----------------------------------------------------
-choose_action:
-  stage: choose
-  script:
-    - echo "❗ Please provide ACTION variable while running pipeline."
-    - echo "➡ ACTION=apply   (to create resources)"
-    - echo "➡ ACTION=destroy (to delete resources)"
-    - echo ""
-    - echo "Go to: CI/CD → Run Pipeline → Add variable ACTION"
-    - exit 1
-  when: manual
-  allow_failure: false
-
-# ----------------------------------------------------
-# 2️⃣ Terraform INIT (runs for both apply/destroy)
+# Terraform INIT
 # ----------------------------------------------------
 terraform_init:
   stage: init
@@ -38,7 +22,7 @@ terraform_init:
     - if: '$ACTION == "destroy"'
 
 # ----------------------------------------------------
-# 3️⃣ Terraform APPLY
+# Terraform APPLY
 # ----------------------------------------------------
 terraform_apply:
   stage: action
@@ -50,7 +34,7 @@ terraform_apply:
     - if: '$ACTION == "apply"'
 
 # ----------------------------------------------------
-# 4️⃣ Terraform DESTROY
+# Terraform DESTROY
 # ----------------------------------------------------
 terraform_destroy:
   stage: action
