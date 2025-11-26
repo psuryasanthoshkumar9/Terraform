@@ -10,16 +10,15 @@ variables:
 terraform_fmt:
   stage: fmt
   image: hashicorp/terraform:1.5.7
+  entrypoint: [""]
   script:
     - cd $TF_ROOT
     - terraform fmt -check || true
-  artifacts:
-    paths:
-      - $TF_ROOT
 
 terraform_validate:
   stage: validate
   image: hashicorp/terraform:1.5.7
+  entrypoint: [""]
   script:
     - cd $TF_ROOT
     - terraform init -input=false
@@ -28,6 +27,7 @@ terraform_validate:
 terraform_plan:
   stage: plan
   image: hashicorp/terraform:1.5.7
+  entrypoint: [""]
   script:
     - cd $TF_ROOT
     - terraform init -input=false
@@ -39,6 +39,7 @@ terraform_plan:
 terraform_apply:
   stage: apply
   image: hashicorp/terraform:1.5.7
+  entrypoint: [""]
   when: manual
   script:
     - cd $TF_ROOT
