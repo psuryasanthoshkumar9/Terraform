@@ -4,9 +4,11 @@ image:
 
 stages:
   - fmt
+  - init
   - validate
   - plan
-  - action
+  - apply
+  - destroy
 
 variables:
   TF_ROOT: "Day-1-basic-code"
@@ -18,18 +20,35 @@ before_script:
   - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
   - export AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
 
+# -----------------------------
+# FMT
+# -----------------------------
 terraform_fmt:
   stage: fmt
   script:
     - terraform fmt -check
   allow_failure: true
 
+# -----------------------------
+# INIT
+# -----------------------------
+terraform_init:
+  stage: init
+  script:
+    - terraform init -input=false
+
+# -----------------------------
+# VALIDATE
+# -----------------------------
 terraform_validate:
   stage: validate
   script:
     - terraform init -input=false
     - terraform validate
 
+# -----------------------------
+# PLAN
+# -----------------------------
 terraform_plan:
   stage: plan
   script:
@@ -39,22 +58,24 @@ terraform_plan:
     - terraform_validate
   artifacts:
     paths:
-      - $TF_ROOT/tfplan
+      - tfplan
 
-terraform_action:
-  stage: action
-  script:
-    - echo "Choose action: apply or destroy"
-    - read ACTION
-    - |
-      if [ "$ACTION" = "apply" ]; then
-        terraform apply -auto-approve tfplan
-      elif [ "$ACTION" = "destroy" ]; then
-        terraform destroy -auto-approve
-      else
-        echo "Invalid action! Exiting..."
-        exit 1
-      fi
+# -----------------------------
+# APPLY
+# -----------------------------
+terraform_apply:
+  stage: apply
   when: manual
+  script:
+    - terraform apply -auto-approve tfplan
   dependencies:
     - terraform_plan
+
+# -----------------------------
+# DESTROY
+# -----------------------------
+terraform_destroy:
+  stage: destroy
+  when: manual
+  script:
+    - terraform destroy -auto-approve
