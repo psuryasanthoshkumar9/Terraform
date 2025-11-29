@@ -1,0 +1,60 @@
+pipeline {
+    agent any
+
+    environment {
+        APP_DIR = "student-frontend"
+        PYTHON_ENV = "venv"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/your-frontend-repo-url.git', branch: 'main'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh """
+                    cd ${APP_DIR}
+                    python3 -m venv ${PYTHON_ENV}
+                    source ${PYTHON_ENV}/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                """
+            }
+        }
+
+        stage('Run Lint Checks') {
+            steps {
+                sh """
+                    cd ${APP_DIR}
+                    source ${PYTHON_ENV}/bin/activate
+                    pip install pylint
+                    pylint frontend_app.py || true
+                """
+            }
+        }
+
+        stage('Start Frontend Server') {
+            steps {
+                sh """
+                    cd ${APP_DIR}
+                    source ${PYTHON_ENV}/bin/activate
+                    nohup python3 frontend_app.py > frontend.log 2>&1 &
+                """
+            }
+        }
+
+    }
+
+    post {
+        success {
+            echo "Frontend Deployment Successful! 🎉"
+        }
+        failure {
+            echo "Frontend Deployment Failed ❌"
+        }
+    }
+}
