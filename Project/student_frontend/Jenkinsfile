@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+    environment {
+        FRONTEND_DIR = "Student-Frontend"
+        VENV_DIR = "venv"
+        PORT = "8501"
+        API_URL = "http://localhost:5000" // backend url on same host
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/psuryasanthoshkumar9/Terraform.git'
+            }
+        }
+        stage('Setup venv & deps') {
+            steps {
+                dir("${FRONTEND_DIR}") {
+                    sh '''
+                    if [ ! -d "${VENV_DIR}" ]; then
+                      python3 -m venv ${VENV_DIR}
+                    fi
+                    . ${VENV_DIR}/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                    '''
+                }
+            }
+        }
+        stage('Stop old frontend') {
+            steps {
+                sh 'pkill -f frontend_app.py || true'
+            }
+        }
+        stage('Start frontend') {
+            steps {
+                dir("${FRONTEND_DIR}") {
+                    sh '''
+                    export API_URL=${API_URL}
+                    . ${VENV_DIR}/bin/activate
+                    nohup ${VENV_DIR}/bin/streamlit run frontend_app.py --server.port=${PORT} --server.address=0.0.0.0 > frontend.log 2>&1 &
+                    '''
+                }
+            }
+        }
+        stage('Verify') {
+            steps {
+                sh '''
+                sleep 5
+                curl -f http://localhost:${PORT} || (tail -n 200 ${FRONTEND_DIR}/frontend.log && exit 1)
+                '''
+            }
+        }
+    }
+    post {
+        always { echo "Frontend pipeline finished" }
+    }
+}

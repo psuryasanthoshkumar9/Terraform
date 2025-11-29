@@ -1,0 +1,60 @@
+pipeline {
+    agent any
+    environment {
+        APP_DIR = "Student-Backend"
+        VENV = "${WORKSPACE}/${APP_DIR}/venv"
+        PORT = "5000"
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/psuryasanthoshkumar9/Terraform.git'
+            }
+        }
+        stage('Setup venv & deps') {
+            steps {
+                dir("${APP_DIR}") {
+                    sh '''
+                    if [ ! -d "venv" ]; then
+                      python3 -m venv venv
+                    fi
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                    '''
+                }
+            }
+        }
+        stage('Stop old backend') {
+            steps {
+                sh '''
+                pkill -f "app.py" || true
+                sleep 1
+                '''
+            }
+        }
+        stage('Start backend') {
+            steps {
+                dir("${APP_DIR}") {
+                    sh '''
+                    . venv/bin/activate
+                    nohup venv/bin/python3 app.py > backend.log 2>&1 &
+                    '''
+                }
+            }
+        }
+        stage('Verify') {
+            steps {
+                sh '''
+                sleep 4
+                curl -f http://localhost:${PORT}/health || (tail -n 200 backend.log && exit 1)
+                '''
+            }
+        }
+    }
+    post {
+        always {
+            archiveArtifacts artifacts: 'Student-Backend/backend.log', allowEmptyArchive: true
+        }
+    }
+}
