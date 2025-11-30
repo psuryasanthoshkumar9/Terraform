@@ -1,25 +1,37 @@
+# -----------------------------
+# AWS Region
+# -----------------------------
 variable "region" {
-  default = "us-east-1"
+  description = "AWS region to deploy resources"
+  default     = "us-east-1"
 }
-variable "key_name" {
-  description = "EC2 key pair name (optional, required for SSH)"
-  default     = ""
-}
-variable "public_key_path" {
-  description = "Path to public key (optional)"
-  default     = ""
-}
-variable "instance_type" {
-  default = "t3.medium"
-}
-variable "db_username" {
-  default = "admin"
-}
-variable "db_password" {
-  description = "MySQL RDS password (override)"
-  default     = "Cloud123"
-  sensitive   = true
-}
+
+# -----------------------------
+# Project Name
+# -----------------------------
 variable "project_name" {
-  default = "SmartEdu-DataStore"
+  description = "Name prefix for all AWS resources"
+  default     = "SmartEdu-DataStore"
+}
+
+# -----------------------------
+# EC2 Instance Type
+# -----------------------------
+variable "instance_type" {
+  description = "EC2 instance type for CI/CD server"
+  default     = "t3.medium"
+}
+
+# -----------------------------
+# RDS Credentials
+# -----------------------------
+variable "db_username" {
+  description = "MySQL username"
+  default     = "admin"
+}
+
+variable "db_password" {
+  description = "MySQL root password"
+  sensitive   = true
+  default     = "Cloud123"
 }

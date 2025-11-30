@@ -52,7 +52,7 @@ resource "aws_route_table_association" "pub_assoc" {
 }
 
 # -----------------------------
-# Private Subnets for RDS (2 AZs)
+# Private Subnets for RDS
 # -----------------------------
 resource "aws_subnet" "private1" {
   vpc_id                  = aws_vpc.main.id
@@ -108,6 +108,25 @@ resource "aws_security_group" "sg" {
 }
 
 # -----------------------------
+# AUTOMATIC KEY PAIR GENERATION
+# -----------------------------
+resource "tls_private_key" "ci_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "aws_key_pair" "ci_key" {
+  key_name   = "${var.project_name}-key"
+  public_key = tls_private_key.ci_key.public_key_openssh
+}
+
+resource "local_file" "private_key" {
+  content         = tls_private_key.ci_key.private_key_pem
+  filename        = "${path.module}/${var.project_name}-key.pem"
+  file_permission = "0400"
+}
+
+# -----------------------------
 # EC2 Instance (CI/CD + Docker)
 # -----------------------------
 data "aws_ami" "amazon_linux" {
@@ -124,7 +143,7 @@ resource "aws_instance" "ci" {
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.sg.id]
-  key_name               = var.key_name != "" ? var.key_name : null
+  key_name               = aws_key_pair.ci_key.key_name
   user_data              = file("${path.module}/user_data.sh")
 
   root_block_device {
@@ -136,7 +155,7 @@ resource "aws_instance" "ci" {
 }
 
 # -----------------------------
-# RDS SUBNET GROUP (2 subnets)
+# RDS SUBNET GROUP
 # -----------------------------
 resource "aws_db_subnet_group" "dbsubnet" {
   name       = "${lower(var.project_name)}-db-subnet"
@@ -148,7 +167,7 @@ resource "aws_db_subnet_group" "dbsubnet" {
 }
 
 # -----------------------------
-# RDS MySQL (publicly accessible)
+# RDS MySQL
 # -----------------------------
 resource "aws_db_instance" "mysql" {
   identifier             = "${lower(var.project_name)}-db"
