@@ -1,0 +1,63 @@
+pipeline {
+  agent any
+  environment {
+    SONARQUBE = 'sonar'
+    JAR_NAME = 'datastore-0.0.1.jar'
+    RDS_ENDPOINT = "${RDS_ENDPOINT}" // ideally set in Jenkins credentials or configured as global env
+  }
+
+  stages {
+    stage('Checkout') {
+      steps { git branch: 'main', url: 'https://github.com/your-org/SmartEdu-DataStore.git' }
+    }
+
+    stage('Clean & Build') {
+      steps {
+        sh 'mvn -f backend/pom.xml clean package -DskipTests=true'
+      }
+    }
+
+    stage('SonarQube') {
+      steps {
+        withSonarQubeEnv('sonar') {
+          sh 'mvn -f backend/pom.xml sonar:sonar -Dsonar.host.url=http://localhost:9000'
+        }
+      }
+    }
+
+    stage('Quality Gate') {
+      steps {
+        script {
+          def qg = waitForQualityGate()
+          if (qg.status != 'OK') { error "Quality Gate failed: ${qg.status}" }
+        }
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        script {
+          // copy jar to shared /opt/apps and run
+          sh '''
+             cp backend/target/*.jar /opt/apps/datastore.jar || true
+             PID=$(pgrep -f datastore.jar || true)
+             if [ -n "$PID" ]; then
+               echo "Killing $PID"
+               kill -9 $PID || true
+             fi
+             nohup java -jar /opt/apps/datastore.jar \
+                --MYSQL_HOST="jdbc:mysql://${RDS_ENDPOINT}:3306/datastore?createDatabaseIfNotExist=true" \
+                --MYSQL_USERNAME="admin" \
+                --MYSQL_PASSWORD="Cloud123" \
+                --server.port=8084 > /opt/apps/datastore.nohup 2>&1 &
+          '''
+        }
+      }
+    }
+  }
+
+  post {
+    success { echo 'Backend deployed' }
+    failure { echo 'Backend pipeline failed' }
+  }
+}

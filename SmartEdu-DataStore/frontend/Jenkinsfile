@@ -1,0 +1,29 @@
+pipeline {
+  agent any
+  stages {
+    stage('Checkout') {
+      steps { git branch: 'main', url: 'https://github.com/your-org/SmartEdu-DataStore.git' }
+    }
+    stage('Install') {
+      steps {
+        sh 'python3 -m pip install -r frontend/requirements.txt'
+      }
+    }
+    stage('Deploy Frontend') {
+      steps {
+        sh '''
+           rm -rf /opt/apps/frontend || true
+           mkdir -p /opt/apps/frontend
+           cp -r frontend/* /opt/apps/frontend/
+           PID=$(pgrep -f "streamlit.*app.py" || true)
+           if [ -n "$PID" ]; then kill -9 $PID || true; fi
+           nohup streamlit run /opt/apps/frontend/app.py --server.port 8501 --server.headless true > /opt/apps/frontend/nohup.log 2>&1 &
+        '''
+      }
+    }
+  }
+  post {
+    success { echo 'Frontend deployed' }
+    failure { echo 'Frontend pipeline failed' }
+  }
+}
