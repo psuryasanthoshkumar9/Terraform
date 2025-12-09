@@ -1,18 +1,20 @@
-# Use official Node image
 FROM node:20-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Copy package.json and install dependencies
+# Copy package.json first for caching dependencies
 COPY package.json package-lock.json* ./
+
 RUN npm install
 
-# Copy all source code (including .env)
+# Copy all source code
 COPY . .
 
-# Expose port 3000 for Vite
+# Build React app
+RUN npm run build
+
+# Expose port 3000
 EXPOSE 3000
 
-# Start Vite preview so it listens on 0.0.0.0
+# Run Vite preview
 CMD ["npm", "run", "start"]

@@ -3,18 +3,19 @@ USE school;
 
 CREATE TABLE IF NOT EXISTS students (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
+  name VARCHAR(255),
   age INT,
-  class VARCHAR(50)
+  `class` VARCHAR(50)
 );
 
 CREATE TABLE IF NOT EXISTS teachers (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  subject VARCHAR(100)
+  name VARCHAR(255),
+  subject VARCHAR(255)
 );
 
-INSERT INTO students (name, age, class) VALUES
+-- seed
+INSERT INTO students (name, age, `class`) VALUES
 ('Alice', 14, '8A'),
 ('Bob', 15, '9B'),
 ('Charlie', 13, '7A');

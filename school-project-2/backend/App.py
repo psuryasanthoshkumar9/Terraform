@@ -1,8 +1,10 @@
 from flask import Flask, jsonify, request
 import mysql.connector
 import os
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # allow frontend requests
 
 def get_conn():
     return mysql.connector.connect(
@@ -16,43 +18,47 @@ def get_conn():
 def index():
     return "Welcome to School Management Dashboard"
 
-@app.route("/students", methods=["GET","POST"])
+@app.route("/students", methods=["GET", "POST"])
 def students():
     conn = get_conn()
     cursor = conn.cursor(dictionary=True)
     if request.method == "GET":
-        cursor.execute("SELECT * FROM students")
+        cursor.execute("SELECT id, name, age, `class` FROM students")
         data = cursor.fetchall()
         cursor.close()
         conn.close()
         return jsonify(data)
     else:
-        body = request.get_json()
-        cursor.execute("INSERT INTO students (name, age, class) VALUES (%s,%s,%s)",
-                       (body.get("name"), body.get("age"), body.get("class")))
+        body = request.get_json() or {}
+        cursor.execute(
+            "INSERT INTO students (name, age, `class`) VALUES (%s,%s,%s)",
+            (body.get("name"), body.get("age"), body.get("class"))
+        )
         conn.commit()
         cursor.close()
         conn.close()
-        return jsonify({"status":"created"}), 201
+        return jsonify({"status": "created"}), 201
 
-@app.route("/teachers", methods=["GET","POST"])
+@app.route("/teachers", methods=["GET", "POST"])
 def teachers():
     conn = get_conn()
     cursor = conn.cursor(dictionary=True)
     if request.method == "GET":
-        cursor.execute("SELECT * FROM teachers")
+        cursor.execute("SELECT id, name, subject FROM teachers")
         data = cursor.fetchall()
         cursor.close()
         conn.close()
         return jsonify(data)
     else:
-        body = request.get_json()
-        cursor.execute("INSERT INTO teachers (name, subject) VALUES (%s,%s)",
-                       (body.get("name"), body.get("subject")))
+        body = request.get_json() or {}
+        cursor.execute(
+            "INSERT INTO teachers (name, subject) VALUES (%s,%s)",
+            (body.get("name"), body.get("subject"))
+        )
         conn.commit()
         cursor.close()
         conn.close()
-        return jsonify({"status":"created"}), 201
+        return jsonify({"status": "created"}), 201
 
 @app.route("/dashboard")
 def dashboard():
@@ -64,10 +70,8 @@ def dashboard():
     teachers_count = cursor.fetchone()[0]
     cursor.close()
     conn.close()
-    return jsonify({
-        "students": students_count,
-        "teachers": teachers_count
-    })
+    return jsonify({"students": students_count, "teachers": teachers_count})
 
 if __name__ == "__main__":
+    # Use 0.0.0.0 so container exposes port
     app.run(host="0.0.0.0", port=5000)
