@@ -1,18 +1,25 @@
 const express = require('express');
-const router = express.Router();
 const { body, query } = require('express-validator');
-const auth = require('../middleware/authMiddleware');
+const router = express.Router();
 const ctrl = require('../controllers/customersController');
 
+// Search: /api/customers?q=krishna
+router.get('/', ctrl.search);
 
-router.get('/', auth, [query('q').optional()], ctrl.search);
-router.get('/:id', auth, ctrl.getById);
-router.post('/', auth, [
-body('first_name').notEmpty(),
-body('email').isEmail(),
-], ctrl.create);
-router.put('/:id', auth, ctrl.update);
-router.delete('/:id', auth, ctrl.remove);
+// Get
+router.get('/:id', ctrl.getById);
 
+// Create
+router.post('/',
+  body('name').notEmpty().withMessage('name required'),
+  body('age').optional().isInt({ min: 0 }),
+  ctrl.create
+);
+
+// Update
+router.put('/:id', ctrl.update);
+
+// Delete
+router.delete('/:id', ctrl.remove);
 
 module.exports = router;

@@ -1,65 +1,91 @@
-const db = require('../db');
+const pool = require('../db');
 const { validationResult } = require('express-validator');
 
+const toInt = v => (v === undefined || v === null) ? null : Number(v);
 
 exports.search = async (req, res) => {
-const q = req.query.q || '';
-const sql = `SELECT * FROM customers WHERE email ILIKE $1 OR first_name ILIKE $1 OR last_name ILIKE $1 ORDER BY created_at DESC LIMIT 50`;
-const { rows } = await db.query(sql, [`%${q}%`]);
-res.json(rows);
+  try {
+    const q = (req.query.q || '').trim();
+    if (!q) {
+      const [rows] = await pool.query('SELECT * FROM customers ORDER BY id DESC LIMIT 100');
+      return res.json(rows);
+    }
+    const like = `%${q}%`;
+    const [rows] = await pool.query(
+      'SELECT * FROM customers WHERE name LIKE ? OR phone LIKE ? ORDER BY id DESC LIMIT 100',
+      [like, like]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
 };
-
 
 exports.getById = async (req, res) => {
-const { id } = req.params;
-const { rows } = await db.query('SELECT * FROM customers WHERE id = $1', [id]);
-if (!rows.length) return res.status(404).json({ error: 'Not found' });
-res.json(rows[0]);
+  try {
+    const id = req.params.id;
+    const [rows] = await pool.query('SELECT * FROM customers WHERE id = ?', [id]);
+    if (!rows.length) return res.status(404).json({ error: 'Not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
 };
-
 
 exports.create = async (req, res) => {
-const errors = validationResult(req);
-if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-
-const { first_name, last_name, email, phone, dob } = req.body;
-try {
-const insert = `INSERT INTO customers (first_name, last_name, email, phone, dob) VALUES ($1,$2,$3,$4,$5) RETURNING *`;
-const { rows } = await db.query(insert, [first_name, last_name, email, phone, dob]);
-res.status(201).json(rows[0]);
-} catch (err) {
-if (err.code === '23505') return res.status(400).json({ error: 'Email already exists' });
-console.error(err);
-res.status(500).json({ error: 'Server error' });
-}
+    const { name, age, phone } = req.body;
+    const [result] = await pool.query(
+      'INSERT INTO customers (name, age, phone) VALUES (?, ?, ?)',
+      [name, toInt(age), phone]
+    );
+    const insertId = result.insertId;
+    const [rows] = await pool.query('SELECT * FROM customers WHERE id = ?', [insertId]);
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
 };
-
 
 exports.update = async (req, res) => {
-const { id } = req.params;
-const fields = [];
-const values = [];
-let idx = 1;
-for (const key of ['first_name','last_name','email','phone','dob']) {
-if (req.body[key] !== undefined) {
-fields.push(`${key} = $${idx}`);
-values.push(req.body[key]);
-idx++;
-}
-}
-if (!fields.length) return res.status(400).json({ error: 'No fields to update' });
-values.push(id);
-const sql = `UPDATE customers SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`;
-const { rows } = await db.query(sql, values);
-if (!rows.length) return res.status(404).json({ error: 'Not found' });
-res.json(rows[0]);
+  try {
+    const id = req.params.id;
+    const allowed = ['name','age','phone'];
+    const parts = [];
+    const values = [];
+    for (const k of allowed) {
+      if (req.body[k] !== undefined) {
+        parts.push(`${k} = ?`);
+        values.push(k === 'age' ? toInt(req.body[k]) : req.body[k]);
+      }
+    }
+    if (!parts.length) return res.status(400).json({ error: 'No fields to update' });
+    values.push(id);
+    const sql = `UPDATE customers SET ${parts.join(', ')} WHERE id = ?`;
+    const [result] = await pool.query(sql, values);
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Not found' });
+    const [rows] = await pool.query('SELECT * FROM customers WHERE id = ?', [id]);
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
 };
 
-
 exports.remove = async (req, res) => {
-const { id } = req.params;
-const { rows } = await db.query('DELETE FROM customers WHERE id = $1 RETURNING id', [id]);
-if (!rows.length) return res.status(404).json({ error: 'Not found' });
-res.json({ deleted: true });
+  try {
+    const id = req.params.id;
+    const [result] = await pool.query('DELETE FROM customers WHERE id = ?', [id]);
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Not found' });
+    res.json({ deleted: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
 };

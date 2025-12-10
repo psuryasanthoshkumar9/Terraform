@@ -1,14 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/authMiddleware');
 const ctrl = require('../controllers/policiesController');
 
-
-router.get('/', auth, ctrl.search);
-router.get('/:id', auth, ctrl.getById);
-router.post('/', auth, ctrl.create);
-router.put('/:id', auth, ctrl.update);
-router.delete('/:id', auth, ctrl.remove);
-
+// Search: /api/policies?q=POL-100
+router.get('/', ctrl.search);
+router.get('/:id', ctrl.getById);
+router.post('/', ctrl.create);
+router.put('/:id', ctrl.update);
+router.delete('/:id', ctrl.remove);
 
 module.exports = router;
