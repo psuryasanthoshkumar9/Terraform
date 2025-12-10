@@ -1,25 +1,18 @@
-import React, { useState } from 'react'
-import Customers from './components/Customers'
-import Policies from './components/Policies'
+import { useState } from "react";
+import PolicyList from "./components/PolicyList";
+import PolicyForm from "./components/PolicyForm";
 
+function App() {
+  const [editing, setEditing] = useState(null);
+  const [refresh, setRefresh] = useState(false);
 
-const App = () => {
-const [view, setView] = useState('customers')
-return (
-<div className="container">
-<header className="flex items-center justify-between mb-6">
-<h1 className="text-2xl font-bold">Insurance Admin</h1>
-<nav className="space-x-2">
-<button className={`px-3 py-1 rounded ${view==='customers'?'bg-blue-600 text-white':'bg-white'}`} onClick={()=>setView('customers')}>Customers</button>
-<button className={`px-3 py-1 rounded ${view==='policies'?'bg-blue-600 text-white':'bg-white'}`} onClick={()=>setView('policies')}>Policies</button>
-</nav>
-</header>
-
-
-<main>
-{view === 'customers' ? <Customers /> : <Policies />}
-</main>
-</div>
-)
+  return (
+    <div className="p-4">
+      <h1 className="text-xl font-bold">Insurance Management</h1>
+      <PolicyForm policy={editing} onSaved={() => { setEditing(null); setRefresh(!refresh); }} />
+      <PolicyList key={refresh} onEdit={setEditing} />
+    </div>
+  );
 }
-export default App
+
+export default App;
