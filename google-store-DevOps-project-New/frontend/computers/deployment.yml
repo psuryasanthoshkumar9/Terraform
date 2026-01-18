@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: computers-deployment
+  labels:
+    app: computers
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: computers
+  template:
+    metadata:
+      labels:
+        app: computers
+    spec:
+      containers:
+      - name: computers
+        image: 225962644762.dkr.ecr.us-west-2.amazonaws.com/shopping-site-computers:ff290f7406ca907ac93cc7150561f4570e3527e2
+        ports:
+        - containerPort: 80

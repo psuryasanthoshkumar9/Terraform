@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: googleclothes-service
+  labels:
+    app: googleclothes
+spec:
+  type: ClusterIP
+  selector:
+    app: googleclothes
+  ports:
+    - port: 80
+      targetPort: 80

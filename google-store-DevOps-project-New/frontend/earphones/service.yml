@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: earphones-service
+  labels:
+    app: earphones
+spec:
+  type: ClusterIP
+  selector:
+    app: earphones
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

@@ -1,0 +1,91 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shop-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: 
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: main-service
+                port:
+                  number: 80
+
+          - path: /electronics
+            pathType: Prefix
+            backend:
+              service:
+                name: electronics-service
+                port:
+                  number: 80
+
+          - path: /phones
+            pathType: Prefix
+            backend:
+              service:
+                name: phones-service
+                port:
+                  number: 80
+
+          - path: /computers
+            pathType: Prefix
+            backend:
+              service:
+                name: computers-service
+                port:
+                  number: 80
+
+          - path: /googlemusic
+            pathType: Prefix
+            backend:
+              service:
+                name: googlemusic-service
+                port:
+                  number: 80
+
+          - path: /earphones
+            pathType: Prefix
+            backend:
+              service:
+                name: earphones-service
+                port:
+                  number: 80
+
+          - path: /payment
+            pathType: Prefix
+            backend:
+              service:
+                name: payment-service
+                port:
+                  number: 80
+
+          - path: /googlepay
+            pathType: Prefix
+            backend:
+              service:
+                name: googlepay-service
+                port:
+                  number: 80
+
+          - path: /googleclothes
+            pathType: Prefix
+            backend:
+              service:
+                name: googleclothes-service
+                port:
+                  number: 80
+
+          - path: /googlegrocery
+            pathType: Prefix
+            backend:
+              service:
+                name: googlegrocery-service
+                port:
+                  number: 80
+
