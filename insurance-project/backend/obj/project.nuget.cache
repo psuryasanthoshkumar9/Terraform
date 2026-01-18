@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "fo9uPGPFK2g=",
+  "dgSpecHash": "nrweBnYQ0+w=",
   "success": true,
-  "projectFilePath": "c:\\Users\\surya\\Terraform\\Terraform\\insurance-project\\backend\\backend.csproj",
+  "projectFilePath": "C:\\Users\\surya\\Terraform\\Terraform\\insurance-project\\backend\\backend.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\surya\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\surya\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\6.0.0\\microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",
@@ -47,9 +47,9 @@
       "code": "NU1603",
       "level": "Warning",
       "message": "backend depends on Pomelo.EntityFrameworkCore.MySql (>= 8.0.7) but Pomelo.EntityFrameworkCore.MySql 8.0.7 was not found. Pomelo.EntityFrameworkCore.MySql 9.0.0 was resolved instead.",
-      "projectPath": "c:\\Users\\surya\\Terraform\\Terraform\\insurance-project\\backend\\backend.csproj",
+      "projectPath": "C:\\Users\\surya\\Terraform\\Terraform\\insurance-project\\backend\\backend.csproj",
       "warningLevel": 1,
-      "filePath": "c:\\Users\\surya\\Terraform\\Terraform\\insurance-project\\backend\\backend.csproj",
+      "filePath": "C:\\Users\\surya\\Terraform\\Terraform\\insurance-project\\backend\\backend.csproj",
       "libraryId": "Pomelo.EntityFrameworkCore.MySql",
       "targetGraphs": [
         "net8.0"
